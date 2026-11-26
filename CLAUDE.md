@@ -18,11 +18,22 @@
 - Background music sits under the voice, ducked, fading in and out.
 
 ## Pipeline (`video/`)
-Each video lives in `video/projects/<name>/`: `scenes.py` (TITLE, OUTPUT, LINES = one entry per spoken
-line, SCENES = one scene function per line, ending with `s_follow`), `voiceover.mp3`, `timings.json`.
-Shared drawing helpers and the earlier scenes are in `render.py`.
-Set `FOLLOW_SUB` in `scenes.py` when the script's closing line differs from the default.
+Each video lives in `video/projects/<name>/` with `scenes.py`, `voiceover.mp3` and `timings.json`.
+Batch videos are named `projects/b<batch>_<nn>_<slug>/` and output `<nn>_<Title>_16x9.mp4`.
+
+New videos use the scene kit (`kit.py`): `scenes.py` sets TITLE (two lines), OUTPUT and
+`SPEC = [(spoken line, motif, dict(options, acc="WORDS TO HIGHLIGHT")), ..., (follow line, "follow")]`,
+then `LINES, SCENES = build(SPEC)` and `FOLLOW_SUB = follow_sub(SPEC[-1][0])`. See `projects/b1_*` for examples.
+Pick a motif that illustrates each line and vary them; motifs are the `m_*` functions in `kit.py`
+(price, receipt, chart, coins, scale, door, brain, gauge, lock, doc, path, stairs, timeline, phone, iceberg,
+network, tangle, plant, book, chairs, frame, shed, arrows, startline, bricks, map, dots, fog, mirror, cage,
+shield, bubbles, quote, sticker, crowd, alone, list, progress, puzzle, compass, key, crown, sunrise,
+hourglass, question, pulse, big). Add a new motif to `kit.py` when none fits.
+Hand-written scenes (older videos) also work: SCENES is any list of `f(d, t, dur)` functions.
+
 1. `python3 tts/speak.py projects/<name> af_heart 0.92` (voiceover + timings).
    (For an externally made voiceover instead: save it as `voiceover.mp3`, then
    `python3 make_timings.py projects/<name> 3.0` finds the line timings from its pauses.)
-2. `./build.sh projects/<name>` writes `output/<OUTPUT>` (16:9, voice + ducked music).
+2. `python3 tools_preview.py projects/<name> /tmp/sheet.jpg` renders one frame per scene to check layout.
+3. `./build.sh projects/<name>` writes `output/<OUTPUT>` (16:9, voice + ducked music), ~2 min each.
+   Several at once: `ls -d projects/b1_* | xargs -P 3 -I{} ./build.sh {}` (4 CPUs).

@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 PROJ=${1:?usage: ./build.sh projects/<name>}
-OUTNAME=$(python3 -c "import ast,sys;t=ast.parse(open('$PROJ/scenes.py').read());print([n.value.value for n in t.body if isinstance(n,ast.Assign) and n.targets[0].id=='OUTPUT'][0])")
+OUTNAME=$(python3 -c "import ast,sys;t=ast.parse(open('$PROJ/scenes.py').read());print([n.value.value for n in t.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id=='OUTPUT'][0])")
 mkdir -p output
 TMP=$(mktemp -d)
 python3 render.py "$PROJ/timings.json" "$TMP/silent.mp4" "$PROJ/scenes.py"

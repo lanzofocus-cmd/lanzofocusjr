@@ -535,6 +535,10 @@ def main():
         TITLE = getattr(mod, "TITLE", TITLE)
         globals()["TITLE"] = TITLE
         globals()["FOLLOW_SUB"] = getattr(mod, "FOLLOW_SUB", FOLLOW_SUB)
+        # scenes imported via `from render import ...` live in a second copy of this module
+        if "render" in sys.modules:
+            sys.modules["render"].TITLE = TITLE
+            sys.modules["render"].FOLLOW_SUB = globals()["FOLLOW_SUB"]
     intro = timing["intro"]
     segs = timing["segments"]
     end = timing["end"]
