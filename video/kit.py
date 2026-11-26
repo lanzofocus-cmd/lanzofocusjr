@@ -906,8 +906,8 @@ def m_ring(d, t, dur, tags=(), center_tag=None, **k):
     cx, cy = W / 2, CY + 140
     n = max(6, len(tags))
     for i in range(n):
-        ang = math.radians(-90 + i * 360 / n)
-        x, y = cx + 470 * math.cos(ang), cy + 170 * math.sin(ang) + 60
+        ang = math.radians(i * 360 / n)
+        x, y = cx + 520 * math.cos(ang), cy + 190 * math.sin(ang) + 60
         a = ramp(t, 0.15 + i * 0.07)
         person(d, x, y + 60, 0.75, a * 0.75, GREY)
         if i < len(tags):
