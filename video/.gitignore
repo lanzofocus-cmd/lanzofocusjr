@@ -1,3 +1,6 @@
 assets/music.wav
 output/
 __pycache__/
+tts/*.onnx
+tts/*.bin
+voice_samples/

@@ -177,6 +177,7 @@ CY = 600  # icon centre line
 
 
 TITLE = ("THE VERSION", "YOU'RE BECOMING")
+FOLLOW_SUB = ("FOR IDEAS, LESSONS, AND PERSPECTIVES THAT HELP YOU", "BECOME A BETTER VERSION OF YOURSELF.")
 
 
 def s_title(d, t, dur):
@@ -494,8 +495,7 @@ def s_follow(d, t, dur):
     a = ramp(t, 0.1, 0.6)
     d.text((W / 2, 330), "FOLLOW", font=font(70), fill=col((200, 200, 200, 255), a), anchor="mm")
     d.text((W / 2, 440), "LANZOFOCUS", font=font(150), fill=col(WHITE, ramp(t, 0.4, 0.6)), anchor="mm")
-    sub = ["FOR IDEAS, LESSONS, AND PERSPECTIVES THAT HELP YOU",
-           "BECOME A BETTER VERSION OF YOURSELF."]
+    sub = list(FOLLOW_SUB)
     caption(d, sub, t, dur, y=600, size=40, start=0.9, speak=0.7)
     # follow button
     k = ramp(t, dur * 0.55, 0.5)
@@ -534,6 +534,7 @@ def main():
         SCENES = mod.SCENES
         TITLE = getattr(mod, "TITLE", TITLE)
         globals()["TITLE"] = TITLE
+        globals()["FOLLOW_SUB"] = getattr(mod, "FOLLOW_SUB", FOLLOW_SUB)
     intro = timing["intro"]
     segs = timing["segments"]
     end = timing["end"]
