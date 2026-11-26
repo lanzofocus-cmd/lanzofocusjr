@@ -4,7 +4,7 @@
 Black background, soft centre glow, glowing white line-art icons and bold
 uppercase captions revealed word by word. 1920x1080 (16:9), 30 fps.
 
-Usage: python3 render.py timings.json out_silent.mp4
+Usage: python3 render.py timings.json out_silent.mp4 [projects/<name>/scenes.py]
 timings.json: {"intro": seconds, "segments": [[start, end], ...]} (17 segments, seconds on the final timeline)
 """
 import json, math, subprocess, sys
@@ -147,7 +147,7 @@ def check(d, cx, cy, s, p, width=8, fill=WHITE):
 
 
 # ---------------------------------------------------------------- captions
-def caption(d, lines, t, dur, y=170, size=64, accent=None, start=0.05, speak=0.8):
+def caption(d, lines, t, dur, y=170, size=64, accent=None, start=0.0, speak=0.6):
     """Word-by-word reveal. lines: list of strings. accent: set of words drawn larger/brighter."""
     words = [(li, w) for li, ln in enumerate(lines) for w in ln.split()]
     n = len(words)
@@ -176,11 +176,16 @@ def caption(d, lines, t, dur, y=170, size=64, accent=None, start=0.05, speak=0.8
 CY = 600  # icon centre line
 
 
+TITLE = ("THE VERSION", "YOU'RE BECOMING")
+
+
 def s_title(d, t, dur):
     a = ramp(t, 0.1, 0.8) * (1 - ramp(t, dur - 0.5, 0.5))
     pill(d, W / 2, 380, "LANZOFOCUS", a, 24)
-    d.text((W / 2, 520), "THE VERSION", font=font(120), fill=col(WHITE, a), anchor="mm")
-    d.text((W / 2, 660), "YOU'RE BECOMING", font=font(120), fill=col(WHITE, ramp(t, 0.5, 0.8) * (1 - ramp(t, dur - 0.5, 0.5))), anchor="mm")
+    l1, l2 = TITLE
+    size = 120 if max(len(l1), len(l2)) <= 16 else 100
+    d.text((W / 2, 520), l1, font=font(size), fill=col(WHITE, a), anchor="mm")
+    d.text((W / 2, 660), l2, font=font(size), fill=col(WHITE, ramp(t, 0.5, 0.8) * (1 - ramp(t, dur - 0.5, 0.5))), anchor="mm")
     polyline(d, [(W / 2 - 260, 770), (W / 2 + 260, 770)], ramp(t, 0.9, 1.0), col(WHITE, a), 4)
 
 
@@ -518,8 +523,17 @@ def make_background():
 
 
 def main():
+    global TITLE, SCENES
     timing = json.load(open(sys.argv[1]))
     out = sys.argv[2]
+    if len(sys.argv) > 3:  # project scenes module, e.g. projects/foo/scenes.py
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("scenes", sys.argv[3])
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        SCENES = mod.SCENES
+        TITLE = getattr(mod, "TITLE", TITLE)
+        globals()["TITLE"] = TITLE
     intro = timing["intro"]
     segs = timing["segments"]
     end = timing["end"]

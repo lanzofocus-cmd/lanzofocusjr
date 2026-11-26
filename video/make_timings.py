@@ -1,25 +1,20 @@
 #!/usr/bin/env python3
 """Build timings.json from a voiceover by detecting its pauses.
 
-Usage: python3 make_timings.py voiceover.mp3 [intro_seconds]
-Picks the 16 pauses (between the 17 script lines) that best match where each
-line should fall by character count, then writes timings.json.
+Usage: python3 make_timings.py projects/<name> [intro_seconds]
+Reads LINES from <project>/scenes.py and <project>/voiceover.mp3. Picks the pauses between script lines that best match where each
+line should fall by character count, then writes <project>/timings.json.
 """
 import json, re, subprocess, sys
 
-LINES = [
-    "Every choice you make is a vote.", "Not for what you want today", "But for who you become tomorrow.",
-    "You don't become disciplined in one moment.", "You become disciplined by choosing to do something",
-    "when you'd rather not.", "You don't become confident by waiting until you're ready.",
-    "You become confident by doing things that scare you", "and realizing you survived.",
-    "And you don't become successful by wishing your life was different.",
-    "You become successful by making different choices", "even when nobody's watching.", "Because eventually",
-    "your habits will introduce you to the person you've been building.", "And you'll either recognize them",
-    "or wish you had chosen differently.",
-    "Follow LanzoFocus for ideas, lessons, and perspectives that help you become a better version of yourself.",
-]
-
-vo = sys.argv[1]
+import importlib.util, os
+proj = sys.argv[1]
+spec = importlib.util.spec_from_file_location("scenes", os.path.join(proj, "scenes.py"))
+mod = importlib.util.module_from_spec(spec)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+spec.loader.exec_module(mod)
+LINES = mod.LINES
+vo = os.path.join(proj, "voiceover.mp3")
 intro = float(sys.argv[2]) if len(sys.argv) > 2 else 3.0
 dur = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", vo]))
 log = subprocess.run(["ffmpeg", "-hide_banner", "-i", vo, "-af", "silencedetect=n=-38dB:d=0.15", "-f", "null", "-"],
@@ -68,6 +63,6 @@ for ps, pe in chosen:
     segs.append([round(s + intro, 3), round(ps + intro, 3)]); s = pe
 segs.append([round(s + intro, 3), round(speech_end + intro, 3)])
 out = {"intro": intro, "segments": segs, "end": round(intro + dur + 2.8, 2)}
-json.dump(out, open("timings.json", "w"), indent=1)
+json.dump(out, open(os.path.join(proj, "timings.json"), "w"), indent=1)
 for l, sg in zip(LINES, segs):
     print(f"{sg[0]:6.2f}-{sg[1]:6.2f}  {l}")
