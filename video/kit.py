@@ -867,6 +867,56 @@ def m_progress(d, t, dur, lbl="PROGRESS", value=0.08, invisible=False, **k):
     label(d, x1 - 40, y + 90, f"{max(1, int(v * 100))}%", a, 28, GREY)
 
 
+def m_notifs(d, t, dur, items=("NEW MESSAGE", "3 NEW VIDEOS", "@YOU WAS MENTIONED", "BREAKING NEWS"), **k):
+    """Phone with notification cards popping in one after another."""
+    a = ramp(t, 0.1)
+    cx, cy = W / 2, CY + 70
+    d.rounded_rectangle([cx - 170, cy - 280, cx + 170, cy + 280], 40, outline=col(WHITE, a), width=7)
+    d.rounded_rectangle([cx - 40, cy - 260, cx + 40, cy - 246], 7, fill=col(WHITE, a))
+    every = max(0.25, min(0.6, dur * 0.6 / max(1, len(items))))
+    for i, it in enumerate(items):
+        st = 0.3 + i * every
+        k2 = ramp(t, st, 0.25)
+        if k2 <= 0:
+            continue
+        y = cy - 190 + i * 100 - (1 - k2) * 30
+        x0 = cx - 260 if i % 2 else cx - 140
+        d.rounded_rectangle([x0, y - 38, x0 + 400, y + 38], 16, fill=col(BLACK, k2), outline=col(WHITE, k2), width=4)
+        d.ellipse([x0 + 16, y - 16, x0 + 48, y + 16], fill=col(WHITE, k2))
+        ftext(d, x0 + 64, y, it, 24, k2, anchor="lm")
+
+
+def m_stage(d, t, dur, lbl=None, empty=False, performing=True, **k):
+    """Figure on a stage under a spotlight, audience heads in front."""
+    base = CY + 140
+    a = ramp(t, 0.1)
+    d.rectangle([W / 2 - 360, base, W / 2 + 360, base + 40], outline=col(WHITE, a), width=5)
+    bob = math.sin(t * 6) * 8 if performing else 0
+    person(d, W / 2, base + bob, 1.3, ramp(t, 0.2))
+    for i in range(9 if not empty else 0):
+        x = W / 2 + (i - 4) * 130
+        d.ellipse([x - 32, base + 120, x + 32, base + 184], fill=col(GREY, ramp(t, 0.2 + i * 0.04) * 0.7))
+        d.rounded_rectangle([x - 50, base + 190, x + 50, base + 260], 30, fill=col(GREY, ramp(t, 0.2 + i * 0.04) * 0.7))
+    if lbl:
+        pill(d, W / 2, base - 290, lbl, ramp(t, 0.7), 24, inverted=False)
+
+
+def m_ring(d, t, dur, tags=(), center_tag=None, **k):
+    """Figure surrounded by a ring of people, each with an optional label."""
+    cx, cy = W / 2, CY + 140
+    n = max(6, len(tags))
+    for i in range(n):
+        ang = math.radians(-90 + i * 360 / n)
+        x, y = cx + 470 * math.cos(ang), cy + 170 * math.sin(ang) + 60
+        a = ramp(t, 0.15 + i * 0.07)
+        person(d, x, y + 60, 0.75, a * 0.75, GREY)
+        if i < len(tags):
+            pill(d, x, y - 80, tags[i], ramp(t, 0.5 + i * 0.12), 20, inverted=False)
+    person(d, cx, cy + 120, 1.2, ramp(t, 0.1))
+    if center_tag:
+        pill(d, cx, cy - 110, center_tag, ramp(t, 1.2), 22)
+
+
 def m_blank(d, t, dur, **k):
     pass
 
