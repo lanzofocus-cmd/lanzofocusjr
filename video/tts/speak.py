@@ -32,6 +32,13 @@ lang = "en-gb" if voice.startswith("b") else "en-us"
 sr = 24000
 audio, segs, t = [], [], 0.0
 for i, line in enumerate(lines):
+    line = line.replace("**", "")
+    if not line.strip():  # silent scene (e.g. a closing card with no voiceover)
+        s = np.zeros(int(3.2 * sr), dtype=np.float32)
+        segs.append([round(INTRO + t, 3), round(INTRO + t + len(s) / sr, 3)])
+        audio.append(s)
+        t += len(s) / sr
+        continue
     s, sr = k.create(line, voice=voice, speed=speed, lang=lang)
     # trim leading/trailing near-silence
     idx = np.where(np.abs(s) > 0.01)[0]

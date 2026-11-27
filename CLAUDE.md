@@ -30,6 +30,12 @@ network, tangle, plant, book, chairs, frame, shed, arrows, startline, bricks, ma
 shield, bubbles, quote, sticker, crowd, alone, list, progress, puzzle, compass, key, crown, sunrise,
 hourglass, question, pulse, big). Add a new motif to `kit.py` when none fits.
 Hand-written scenes (older videos) also work: SCENES is any list of `f(d, t, dur)` functions.
+- Use the user's exact voiceover. If a script ends with a CTA instead of a "Follow LanzoFocus…" line, end the
+  SPEC with `("", "follow")`: a silent follow card (default subtitle) after the spoken CTA.
+- CTA lines use the `cta` motif: `dict(kind="comment" | "save" | "share", lbl="SHORT PROMPT")`.
+- Every scene gets a slow camera push-in (`CAMERA_PUSH` in `render.py`) and `build.sh` mixes a soft whoosh at
+  each scene change (`tools_sfx.py`). Renders take ~5 min each.
+- Batch 3 (the 50-script "master instructions" set) lives in `projects/b3_*`, outputs numbered 41–90.
 
 1. `python3 tts/speak.py projects/<name> af_heart 0.92` (voiceover + timings).
    (For an externally made voiceover instead: save it as `voiceover.mp3`, then

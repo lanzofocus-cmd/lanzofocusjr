@@ -19,7 +19,7 @@ SOFT = (200, 200, 200, 255)
 
 # ================================================================ caption helpers
 def wrap(text, width=30):
-    text = text.upper().replace("’", "'").replace("...", "…")
+    text = text.replace("**", "").upper().replace("’", "'").replace("...", "…")
     words = text.split()
     if len(text) <= 24:
         return [text]
@@ -917,6 +917,37 @@ def m_ring(d, t, dur, tags=(), center_tag=None, **k):
         pill(d, cx, cy - 110, center_tag, ramp(t, 1.2), 22)
 
 
+def m_cta(d, t, dur, kind="comment", lbl=None, **k):
+    """Call-to-action icon: comment | save | share."""
+    cx, cy = W / 2, CY + 60
+    a = ramp(t, 0.2)
+    pop = 1 + 0.08 * math.sin(math.pi * clamp((t - 0.2) / 0.5))
+    s = 1.3 * pop
+    if kind == "comment":
+        d.rounded_rectangle([cx - 150 * s, cy - 100 * s, cx + 150 * s, cy + 70 * s], int(40 * s), outline=col(WHITE, a), width=8)
+        d.polygon([(cx - 70 * s, cy + 66 * s), (cx - 20 * s, cy + 66 * s), (cx - 90 * s, cy + 130 * s)], fill=col(WHITE, a))
+        for i in range(3):
+            da = ramp(t, 0.5 + i * 0.15, 0.2) * (0.6 + 0.4 * math.sin(t * 5 - i))
+            d.ellipse([cx + (i - 1) * 70 * s - 16 * s, cy - 31 * s, cx + (i - 1) * 70 * s + 16 * s, cy + 1 * s], fill=col(WHITE, da))
+        lbl = lbl or "COMMENT BELOW"
+    elif kind == "save":
+        fill = ramp(t, 0.8, 0.4)
+        pts = [(cx - 90 * s, cy - 140 * s), (cx + 90 * s, cy - 140 * s), (cx + 90 * s, cy + 130 * s), (cx, cy + 60 * s), (cx - 90 * s, cy + 130 * s)]
+        d.polygon(pts, fill=col(WHITE, a * fill))
+        polyline(d, pts + [pts[0]], a, WHITE, 8)
+        lbl = lbl or "SAVE THIS"
+    else:
+        k2 = ramp(t, 0.6, 0.6)
+        ox, oy = 60 * k2, -40 * k2
+        pts = [(cx - 160 * s + ox, cy + oy), (cx + 160 * s + ox, cy - 120 * s + oy), (cx + 40 * s + ox, cy + 130 * s + oy), (cx - 10 * s + ox, cy + 30 * s + oy)]
+        polyline(d, pts + [pts[0]], a, WHITE, 8)
+        polyline(d, [(cx - 10 * s + ox, cy + 30 * s + oy), (cx + 160 * s + ox, cy - 120 * s + oy)], a, WHITE, 6)
+        for i in range(3):
+            dashed(d, [(cx - 260 * s, cy + (i * 40 - 20) * s), (cx - 180 * s, cy + (i * 40 - 20) * s)], col(GREY, a * k2), 4, 14, 10)
+        lbl = lbl or "SEND IT TO SOMEONE"
+    pill(d, cx, cy + 230, lbl, ramp(t, 0.6), 28)
+
+
 def m_blank(d, t, dur, **k):
     pass
 
@@ -935,6 +966,9 @@ def build(spec):
             continue
         kw = dict(kw)
         acc = kw.pop("acc", None)
+        if not text.strip():
+            scenes.append(lambda d, t, dur, fn=MOTIFS[motif], kw=kw: fn(d, t, dur, **kw))
+            continue
         fn = MOTIFS[motif]
         cap_lines, accent, one = make_caption(text, acc)
 
@@ -952,6 +986,8 @@ def build(spec):
 
 def follow_sub(text):
     """Split the follow line's tail into the two-line subtitle."""
+    if "LanzoFocus" not in text:
+        return ("FOR IDEAS, LESSONS, AND PERSPECTIVES", "THAT CHALLENGE THE WAY YOU THINK.")
     tail = text.split("LanzoFocus", 1)[1].strip().upper().replace("’", "'")
     words = tail.split()
     if len(tail) < 40:

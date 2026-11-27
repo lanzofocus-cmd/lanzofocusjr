@@ -177,6 +177,7 @@ CY = 600  # icon centre line
 
 
 TITLE = ("THE VERSION", "YOU'RE BECOMING")
+CAMERA_PUSH = 0.04  # each scene slowly zooms in by this fraction
 FOLLOW_SUB = ("FOR IDEAS, LESSONS, AND PERSPECTIVES THAT HELP YOU", "BECOME A BETTER VERSION OF YOURSELF.")
 
 
@@ -496,7 +497,7 @@ def s_follow(d, t, dur):
     d.text((W / 2, 330), "FOLLOW", font=font(70), fill=col((200, 200, 200, 255), a), anchor="mm")
     d.text((W / 2, 440), "LANZOFOCUS", font=font(150), fill=col(WHITE, ramp(t, 0.4, 0.6)), anchor="mm")
     sub = list(FOLLOW_SUB)
-    caption(d, sub, t, dur, y=600, size=40, start=0.9, speak=0.7)
+    caption(d, sub, t, dur, y=600, size=40, start=0.9, speak=min(0.7, 2.0 / max(dur, 0.1)))
     # follow button
     k = ramp(t, dur * 0.55, 0.5)
     bx, by = W / 2, 790
@@ -558,13 +559,18 @@ def main():
         T = fi / FPS
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
+        zoom = 1.0
         for name, st, en, fn in windows:
             if st <= T < en:
                 fn(d, T - st, en - st)
                 fade = min(ramp(T - st, 0, 0.25), 1 - ramp(T, en - 0.25, 0.25))
+                zoom = 1.0 + CAMERA_PUSH * clamp((T - st) / max(0.1, en - st))
                 break
         else:
             fade = 0
+        if zoom > 1.0005:  # slow camera push-in towards the frame centre
+            inv = 1 / zoom
+            layer = layer.transform((W, H), Image.AFFINE, (inv, 0, W / 2 * (1 - inv), 0, inv, H / 2 * (1 - inv)), Image.BILINEAR)
         if fade < 1:
             layer.putalpha(layer.getchannel("A").point(lambda v, f=fade: int(v * f)))
         # glow: blurred copy of the white content added underneath
