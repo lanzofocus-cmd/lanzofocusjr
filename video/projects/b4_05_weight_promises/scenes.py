@@ -58,7 +58,7 @@ def room(d, cam, t, warmth=0.0, spot_x=0, spot_a=1.0, door=1.0):
         if -10 < sx < W + 10:
             d.line([(sx, 0), (sx, cam.p(0, 0)[1])], fill=(22, 24, 30, 255), width=max(1, int(cam.s(3))))
     fy = cam.p(0, 0)[1]
-    d.rectangle([0, fy, W, H], fill=mix((18, 19, 23, 255), (40, 30, 26, 255), warmth))
+    if fy < H: d.rectangle([0, fy, W, H], fill=mix((18, 19, 23, 255), (40, 30, 26, 255), warmth))
     d.line([(0, fy), (W, fy)], fill=col(STEEL, 0.4), width=max(1, int(cam.s(3))))
     # the doorway of light far to the right
     if door > 0:

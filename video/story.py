@@ -45,7 +45,7 @@ class Cam:
 
     def box(self, x0, y0, x1, y1):
         a, b = self.p(x0, y0), self.p(x1, y1)
-        return [a[0], a[1], b[0], b[1]]
+        return [min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1])]
 
 
 def cam_lerp(a, b, k, oy=0):

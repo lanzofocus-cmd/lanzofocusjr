@@ -43,3 +43,13 @@ Hand-written scenes (older videos) also work: SCENES is any list of `f(d, t, dur
 2. `python3 tools_preview.py projects/<name> /tmp/sheet.jpg` renders one frame per scene to check layout.
 3. `./build.sh projects/<name>` writes `output/<OUTPUT>` (16:9, voice + ducked music), ~2 min each.
    Several at once: `ls -d projects/b1_* | xargs -P 3 -I{} ./build.sh {}` (4 CPUs).
+
+## Story videos (batch 4, `projects/b4_*`, outputs 91–100)
+Cinematic short-story videos with their own world, characters, palette and camera per video (not the scene kit).
+- Shared toolkit: `story.py` (camera `Cam`/`cam_lerp`, soft light `glow`/`beam`/`darkness`, weather, the articulated
+  `figure()` with modes and accessories, hooded `shade()` voices, `top_caption`/`low_caption`, `final_card`, `windows()`).
+  Translucent shapes must use `tpoly()`/`overlay()`: plain ImageDraw overwrites the layer instead of blending.
+- Story sound design: `projects/<name>/sfx_extra.py` defines `extra(out, tim, SR, rng)` (helpers in `story_sfx.py`);
+  optional `SFX_VOLUME` (build.sh mix level) and `WHOOSH_LEVEL`. `tools_sfx.py` picks it up automatically.
+- `scenes.py` may set `SPOKEN` (text sent to TTS, e.g. without leading "…") and `GAPS = {line index: pause}`.
+- A scene function with `.seamless = True` continues the previous shot (no dip to black between them).
