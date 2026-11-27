@@ -229,3 +229,8 @@ class Mixer:
         while k < t1:
             self.add(step(gain * _rng.uniform(0.8, 1.1), pitch * _rng.uniform(0.95, 1.05), soft), k, pan=pan)
             k += 1 / rate
+
+
+def faded(sig, fin=0.3, fout=0.3, gain=1.0):
+    """Apply a fade-in/out envelope matching the signal's own length."""
+    return (sig * fade_env(len(sig), fin, fout) * gain).astype(np.float32)
