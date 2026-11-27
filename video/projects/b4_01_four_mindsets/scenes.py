@@ -12,17 +12,19 @@ from render import W, H, WHITE, GREY, font, clamp, ramp, lerp, col, caption, pol
 from kit import s_follow
 
 TITLE = ("FOUR MINDSETS", "WHO REACHES THE TOP?")
-OUTPUT = "Four_Mindsets_Who_Reaches_The_Top_16x9.mp4"
+OUTPUT = "91_Four_Mindsets_Who_Reaches_The_Top_16x9.mp4"
 FOLLOW_SUB = ("FOR IDEAS, LESSONS, AND PERSPECTIVES", "THAT CHALLENGE THE WAY YOU THINK.")
 
 LINES = [
-    "Four mindsets. One goal. But not everyone reaches the top.",
+    "Four mindsets.",
+    "One goal.",
+    "But not everyone reaches the top.",
     "Motivation starts fast.",
     "But feelings don't last forever.",
     "Discipline doesn't care how you feel.",
     "It moves anyway.",
     "Obsession makes you relentless.",
-    "But intensity without control can destroy progress.",
+    "But intensity without control can cost you everything.",
     "Consistency doesn't need to be impressive.",
     "It just needs to happen again.",
     "Because the people who win aren't always the fastest.",
@@ -35,8 +37,9 @@ LINES = [
     "",
 ]
 # pauses after lines (seconds): room for the action to play out
-GAPS = {0: 0.9, 1: 1.6, 2: 1.3, 3: 0.6, 4: 1.8, 5: 1.0, 6: 1.2, 7: 2.4, 8: 2.4, 9: 1.1, 10: 2.4,
-        11: 0.45, 12: 0.45, 13: 0.45, 14: 1.0, 15: 1.2}
+_G = {0: 0.9, 1: 1.6, 2: 1.3, 3: 0.6, 4: 1.8, 5: 1.0, 6: 1.2, 7: 2.4, 8: 2.4, 9: 1.1, 10: 2.4,
+      11: 0.45, 12: 0.45, 13: 0.45, 14: 1.0, 15: 1.2}
+GAPS = {0: 0.9, 1: 0.9, **{k + 2: v for k, v in _G.items()}}
 
 # ---------------------------------------------------------------- palette
 MOT = (255, 150, 50, 255)
@@ -213,7 +216,8 @@ def summit(d, cam, a=1.0, boost=0.0):
     # light beam from above
     bw = 260 * cam.z
     beam = [(x - bw * 0.35, y - 2400 * cam.z), (x + bw * 0.35, y - 2400 * cam.z), (x + bw, y), (x - bw, y)]
-    d.polygon(beam, fill=col(GOLD, a * (0.10 + 0.10 * boost)))
+    from story import tpoly
+    tpoly(d, beam, col(GOLD, a * (0.10 + 0.10 * boost)))
     # line-art clouds around the summit
     for i, (ox, oy, s) in enumerate([(-700, -260, 1.0), (520, -420, 1.25), (-150, -620, 0.8), (900, -120, 0.9)]):
         cx, cy = cam.p(N * RUN + 400 + ox, Y(N) + oy)
@@ -394,7 +398,8 @@ def scene_world(d, cam, chars, light=1.0, trail=0.0, summit_boost=0.0, lit_to=No
     return pos
 
 
-def top_caption(d, lines, t, dur, accent=None, size=64):
+def top_caption(d, lines, t, dur, accent=None, size=None):
+    size = size or 64
     d._image.alpha_composite(TOPBAND, (0, 0))
     caption(d, lines, t, dur, y=150 if len(lines) == 2 else 130, size=size, accent=accent)
 
@@ -449,8 +454,8 @@ def bolt(d, x, y, a):
 
 
 def flash(d, a):
-    if a > 0.01:
-        d.rectangle([0, 0, W, H], fill=(200, 210, 255, int(70 * a)))
+    from story import overlay
+    overlay(d, (200, 210, 255), 0.3 * clamp(a))
 
 
 def tag(d, text, a, x=W - 120, y=H - 130):
@@ -485,22 +490,38 @@ def q_of(scene, who, p):
 
 
 # ---------------------------------------------------------------- scenes
-def s1_beginning(d, t, dur):
+def _beginning(d, t, dur, k0, k1, lines, accent, seq):
     p = t / dur
-    k = sstep(p)
+    k = sstep(lerp(k0, k1, p))
     wide = (2300, -1900, 0.215)
     close = cam_on(-2.3, 0.5, 0.95, dx=120, dy=-120)
     cam = cam_lerp(wide, close, k)
-    chars = {w: (ST[w], dict(mode="stand", phase=0, label_a=ramp(t, dur * 0.45 + 0.25 * i, 0.5),
-                             look=0.6 + 0.4 * math.sin(t * 0.8 + i), face=1))
+    tl = lerp(k0, k1, p) * 5.0  # label timing follows the camera move
+    chars = {w: (ST[w], dict(mode="stand", phase=0, label_a=clamp((tl - 2.2 - 0.35 * i) / 0.5),
+                             look=0.6 + 0.4 * math.sin((tl + t) * 0.8 + i), face=1))
              for i, w in enumerate(["MOT", "OBS", "DIS", "CON"])}
     chars["MOT"][1]["mode"] = "walk"
-    chars["MOT"][1]["phase"] = t * 9  # bouncing on the spot, can't wait
+    chars["MOT"][1]["phase"] = (seq + t) * 9  # bouncing on the spot, can't wait
     chars["MOT"][1]["stride"] = 0.15
     chars["CON"][1]["label_a"] *= 0.6
     scene_world(d, cam, chars)
     paste(d, FOG, W / 2, H - 80, 0.8, 1.6)
-    top_caption(d, ["FOUR MINDSETS. ONE GOAL.", "BUT NOT EVERYONE REACHES THE TOP."], t, dur, accent={"FOUR", "TOP."})
+    top_caption(d, lines, t, dur, accent=accent, size=76 if len(lines) == 1 else None)
+
+
+def s1a(d, t, dur):
+    _beginning(d, t, dur, 0.0, 0.32, ["FOUR MINDSETS."], {"FOUR"}, 0)
+
+
+def s1b(d, t, dur):
+    _beginning(d, t, dur, 0.32, 0.6, ["ONE GOAL."], {"ONE", "GOAL."}, 3)
+
+
+def s1c(d, t, dur):
+    _beginning(d, t, dur, 0.6, 1.0, ["BUT NOT EVERYONE", "REACHES THE TOP."], {"TOP."}, 6)
+
+
+s1b.seamless = s1c.seamless = True
 
 
 def _bg_climbers(scene, p, extra=None):
@@ -668,7 +689,7 @@ def s7_control(d, t, dur):
         for i in range(4):
             r = h * (0.1 + 0.12 * i) * ramp(t, dur * t1, 0.5)
             d.arc([fx - r * 2, fy - r * 0.5, fx + r, fy + r * 0.4], 200, 340, fill=col(WHITE, a * (0.5 - i * 0.1)), width=3)
-    top_caption(d, ["BUT INTENSITY WITHOUT CONTROL", "CAN DESTROY PROGRESS."], t, dur, accent={"CONTROL", "DESTROY"})
+    top_caption(d, ["BUT INTENSITY WITHOUT CONTROL", "CAN COST YOU EVERYTHING."], t, dur, accent={"CONTROL", "EVERYTHING."})
 
 
 MONTAGE = [
@@ -676,10 +697,10 @@ MONTAGE = [
     ("MORNING", "morning", 0.95, 140, -170, 1),
     ("NIGHT", "night", 0.75, -60, -200, 38),
     ("RAIN", "rain", 1.15, 120, -140, 91),
-    ("SNOW", "snow", 0.85, 200, -170, 140),
-    ("DARKNESS", "dark", 1.0, 80, -150, 203),
-    ("EXHAUSTION", "tired", 1.3, 60, -120, 266),
-    ("ANOTHER DAY", "morning", 0.8, -120, -200, 312),
+    ("DARKNESS", "dark", 1.0, 80, -150, 140),
+    ("ANOTHER DAY", "morning", 0.85, 200, -170, 203),
+    ("ANOTHER STEP", "plain", 1.3, 60, -120, 266),
+    ("ANOTHER DAY", "snow", 0.8, -120, -200, 312),
     ("ANOTHER STEP", "plain", 1.05, 140, -150, 365),
 ]
 
@@ -721,7 +742,8 @@ def montage(d, t, dur, scene, shots, caption_lines, accent):
     if i == n - 1 and u > 0.5:
         dip = 0
     if dip > 0:
-        d.rectangle([0, 0, W, H], fill=(0, 0, 0, int(200 * dip)))
+        from story import overlay
+        overlay(d, (0, 0, 0), 0.8 * dip)
     top_caption(d, caption_lines, t, dur, accent=accent)
 
 
@@ -857,5 +879,5 @@ def s16_tomorrow(d, t, dur):
     d.text((W / 2, 290), "TOMORROW.", font=font(104), fill=col(GOLD, ramp(t, 0.6, 0.5)), anchor="mm")
 
 
-SCENES = [s1_beginning, s2_motivation, s3_feelings, s4_discipline, s5_anyway, s6_obsession, s7_control,
+SCENES = [s1a, s1b, s1c, s2_motivation, s3_feelings, s4_discipline, s5_anyway, s6_obsession, s7_control,
           s8_consistency, s9_again, s10_fastest, s11_showing_up, s12, s13, s14, s15, s16_tomorrow, s_follow]

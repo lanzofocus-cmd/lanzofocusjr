@@ -560,10 +560,14 @@ def main():
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
         zoom = 1.0
-        for name, st, en, fn in windows:
+        for wi, (name, st, en, fn) in enumerate(windows):
             if st <= T < en:
                 fn(d, T - st, en - st)
-                fade = min(ramp(T - st, 0, 0.25), 1 - ramp(T, en - 0.25, 0.25))
+                # a scene marked `seamless` continues the previous shot: no dip to black between them
+                fin = 1.0 if getattr(fn, "seamless", False) else ramp(T - st, 0, 0.25)
+                nxt = windows[wi + 1][3] if wi + 1 < len(windows) else None
+                fout = 1.0 if getattr(nxt, "seamless", False) else 1 - ramp(T, en - 0.25, 0.25)
+                fade = min(fin, fout)
                 zoom = 1.0 + CAMERA_PUSH * clamp((T - st) / max(0.1, en - st))
                 break
         else:

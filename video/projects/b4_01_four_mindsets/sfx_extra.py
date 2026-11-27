@@ -2,6 +2,7 @@
 import numpy as np
 
 WHOOSH_LEVEL = 0.5
+SFX_VOLUME = 0.28
 
 
 def extra(out, tim, SR, rng):
@@ -12,6 +13,7 @@ def extra(out, tim, SR, rng):
         st = segs[i][0] - 0.15 if i else intro
         en = segs[i + 1][0] - 0.15 if i + 1 < n_sc else end
         win.append((st, en))
+    win = [(win[0][0], win[2][1])] + win[3:]  # the three opening lines are one continuous shot
     L = len(out)
 
     def add(sig, t, gain=1.0, pan=0.0):
