@@ -691,3 +691,29 @@ def stage_end(d, t, dur, lines, colors=None, size=110, dim=0.55, glow_col=None, 
     """Standard ending: darken whatever is drawn and put the final message on it."""
     overlay(d, (0, 0, 0), dim)
     final_card(d, t, dur, lines, colors, size=size, glow_col=glow_col, y=y)
+
+
+def light_hole(d, cx, cy, r, a=1.0, holes=()):
+    """Darkness everywhere except soft pools of light: (cx, cy, r) plus any extra (x, y, r) holes."""
+    if a <= 0.01:
+        return
+    if "hole" not in _cache:
+        g = Image.new("L", (600, 600), 255)
+        gd = ImageDraw.Draw(g)
+        for i in range(60, 0, -1):
+            v = int(255 * (i / 60) ** 1.8)
+            gd.ellipse([300 - i * 5, 300 - i * 5, 300 + i * 5, 300 + i * 5], fill=v)
+        _cache["hole"] = g.filter(ImageFilter.GaussianBlur(8))
+    mask = Image.new("L", (W, H), 255)
+    for (x, y, rr) in ((cx, cy, r),) + tuple(holes):
+        if rr < 2:
+            continue
+        s = int(rr * 2)
+        g = _cache["hole"].resize((s, s), Image.BILINEAR)
+        x0, y0 = int(x - rr), int(y - rr)
+        region = mask.crop((x0, y0, x0 + s, y0 + s))
+        from PIL import ImageChops
+        mask.paste(ImageChops.darker(region, g), (x0, y0))
+    black = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    black.putalpha(mask.point(lambda v: int(v * a)))
+    d._image.alpha_composite(black)
