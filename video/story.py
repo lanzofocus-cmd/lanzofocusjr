@@ -256,7 +256,10 @@ def moon(d, x, y, r, a, bg=(0, 0, 0)):
 
 def sun(d, x, y, r, a, color=(255, 205, 110, 255)):
     glow(d, x, y, r * 3.5, color, a * 0.8)
-    d.ellipse([x - r, y - r, x + r, y + r], fill=col(color, a))
+    if a >= 0.99:
+        d.ellipse([x - r, y - r, x + r, y + r], fill=col(color, a))
+    elif a > 0.01:
+        tpoly(d, [(x - r, y - r), (x + r, y + r)], col(color, a), kind="ellipse")
 
 
 def bolt(d, x, y, a, s=1.0):
