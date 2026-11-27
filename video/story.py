@@ -75,6 +75,8 @@ def soft(w, h, color, blur, alpha):
 def paste(d, im, cx, cy, a=1.0, scale=1.0):
     if a <= 0.01 or scale <= 0.01:
         return
+    if im.width * scale > 6000 or im.height * scale > 6000:
+        return
     if abs(scale - 1.0) > 0.01:
         im = im.resize((max(2, int(im.width * scale)), max(2, int(im.height * scale))), Image.BILINEAR)
     if a < 0.99:
@@ -88,6 +90,8 @@ def paste(d, im, cx, cy, a=1.0, scale=1.0):
 
 def glow(d, cx, cy, r, color, a=1.0, squash=1.0):
     """Soft coloured light pool of radius ~r pixels."""
+    if r > 2500 or r < 1:  # a light right on top of the camera: skip rather than build a giant image
+        return
     base = soft(400, int(400 * squash) if squash != 1 else 400, color, 60, 140)
     paste(d, base, cx, cy, a, r / 140)
 

@@ -140,6 +140,8 @@ def roadside(d, cam, t, kind, density=1.0, seed=1):
         if not p:
             continue
         sx, sy, s = p
+        if s > 6:  # right against the lens
+            continue
         if kind == "desert":  # cactus
             hh = (180 + 120 * u) * s
             c = (60, 110, 70, 255)
