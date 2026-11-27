@@ -10,7 +10,7 @@ SPEC = [
     ("Admitting mistakes.", "list", dict(items=["LISTENING", "COMMUNICATING", "MANAGING TIME", "ADMITTING MISTAKES"], mode="check", acc="MISTAKES")),
     ("Staying calm.", "list", dict(items=["LISTENING", "COMMUNICATING", "MANAGING TIME", "ADMITTING MISTAKES", "STAYING CALM"], mode="check", acc="CALM")),
     ("Asking better questions.", "question", dict(a_lbl="A BETTER", b_lbl="QUESTION", acc="BETTER QUESTIONS")),
-    ("These skills rarely make dramatic videos.", "phone", dict(lbl="NOT VIRAL", acc="RARELY DRAMATIC")),
+    ("These skills rarely make dramatic videos.", "chairs", dict(n=7, lbl="NO AUDIENCE", acc="RARELY DRAMATIC")),
     ("But they quietly influence almost every part of your life.", "network", dict(nodes=["WORK", "FRIENDS", "FAMILY", "GOALS", "HEALTH"], tangled=False, acc="QUIETLY INFLUENCE EVERY")),
     ("Don't ignore the skills that make everything else easier.", "key", dict(lbl="EVERYTHING ELSE", acc="IGNORE EASIER")),
     ("Which underrated skill do you think everyone should learn?", "brain", dict(says="UNDERRATED SKILL?", acc="UNDERRATED SKILL")),
