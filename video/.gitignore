@@ -5,3 +5,5 @@ tts/*.onnx
 tts/*.bin
 voice_samples/
 logs/
+queue_*.txt
+queue_*.txt.done
