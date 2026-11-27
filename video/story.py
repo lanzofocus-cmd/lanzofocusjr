@@ -142,6 +142,9 @@ def shade_all(d, a, color=(0, 0, 0)):
 def sky(top, bottom, a=1.0, h=H):
     """Vertical gradient image (cached), pasted full-frame by the caller."""
     key = ("sky", top[:3], bottom[:3], h)
+    if len([k for k in _cache if k[0] == "sky"]) > 64:  # varying colours/heights: don't let the cache grow forever
+        for k in [k for k in _cache if k[0] == "sky"]:
+            del _cache[k]
     if key not in _cache:
         im = Image.new("RGBA", (W, h))
         dd = ImageDraw.Draw(im)
