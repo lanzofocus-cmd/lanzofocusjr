@@ -296,7 +296,30 @@ def two_bone(d, root, target, L1, L2, c, w, bend=1):
     return end
 
 
-def figure(d, fx, fy, h, color, mode="walk", phase=0.0, face=1, lean=0.0, swing=0.5, stride=1.0, lift=1.0,
+def _on_layer(fn, d, alpha, *args, **kw):
+    """Run a drawing function on a transparent layer, then blend it (optionally faded) over d."""
+    lay = Image.new("RGBA", (W, H))
+    ld = ImageDraw.Draw(lay)
+    out = fn(ld, *args, **kw)
+    if alpha < 0.999:
+        lay.putalpha(lay.getchannel("A").point(lambda v: int(v * alpha)))
+    d._image.alpha_composite(lay)
+    return out
+
+
+def figure(d, fx, fy, h, color, mode="walk", **kw):
+    """Articulated flat figure (see _figure). A figure with a < 1 is drawn solid on its own layer and faded as
+    a whole, so it blends with what is behind it instead of punching a dark hole."""
+    a = kw.get("a", 1.0)
+    if a <= 0.005:
+        return None
+    if a < 0.995:
+        kw["a"] = 1.0
+        return _on_layer(_figure, d, a, fx, fy, h, color, mode, **kw)
+    return _figure(d, fx, fy, h, color, mode, **kw)
+
+
+def _figure(d, fx, fy, h, color, mode="walk", phase=0.0, face=1, lean=0.0, swing=0.5, stride=1.0, lift=1.0,
            a=1.0, look=0.0, acc=None, name=None, name_a=1.0, name_col=None, eyes=True, mouth=None, tired=0.0,
            streak=0.0, energy=1.0, hands=None, prop=None, head_down=0.0, bodyw=1.0, eye_col=None):
     """Articulated flat figure standing with its feet at (fx, fy), h pixels tall.
@@ -522,7 +545,14 @@ def _lie(d, fx, fy, h, c, back, lw, face, accs, a):
         d.line([(ex - er, hy), (ex + er, hy)], fill=(10, 10, 14, int(255 * a)), width=max(1, int(er * 0.8)))
 
 
-def shade(d, cx, cy, h, color, a=1.0, t=0.0, eyes=True, point=None, arms=0.0, jag=0.0, name=None, name_a=1.0, solid=0.55, face=1):
+def shade(d, cx, cy, h, color, a=1.0, *args, **kw):
+    """Shadowy hooded voice-figure (see _shade), drawn on its own layer so its translucency blends correctly."""
+    if a <= 0.005:
+        return cx, cy - h
+    return _on_layer(_shade, d, 1.0, cx, cy, h, color, a, *args, **kw)
+
+
+def _shade(d, cx, cy, h, color, a=1.0, t=0.0, eyes=True, point=None, arms=0.0, jag=0.0, name=None, name_a=1.0, solid=0.55, face=1):
     """Shadowy hooded voice-figure, floating (no legs). cy = bottom of the cloak.
     point: optional (x, y) screen point an arm reaches toward. jag: jagged cloak hem. arms: 0..1 raised."""
     sway = math.sin(t * 1.6 + cx * 0.01) * h * 0.02
