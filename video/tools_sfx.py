@@ -33,5 +33,14 @@ for i, st in enumerate(starts):
     a = int(max(0, st - 0.45) * SR)
     seg = out[a:a + len(w)]
     seg += w[:len(seg)]
+# optional project sound design: <project>/sfx_extra.py with extra(out, tim, SR, rng)
+import os, importlib.util
+_extra = os.path.join(os.path.dirname(sys.argv[1]), "sfx_extra.py")
+if os.path.exists(_extra):
+    _spec = importlib.util.spec_from_file_location("sfx_extra", _extra)
+    _m = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_m)
+    out *= _m.WHOOSH_LEVEL if hasattr(_m, "WHOOSH_LEVEL") else 1.0
+    _m.extra(out, tim, SR, rng)
 out /= max(1e-6, np.abs(out).max())
 sf.write(sys.argv[2], out * 0.5, SR)

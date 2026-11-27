@@ -26,6 +26,7 @@ spec = importlib.util.spec_from_file_location("scenes", os.path.join(proj, "scen
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 lines = getattr(mod, "SPOKEN", mod.LINES)
+gaps = getattr(mod, "GAPS", {})  # optional {line index: pause after it, seconds}
 
 k = Kokoro(os.path.join(HERE, "kokoro-v1.0.onnx"), os.path.join(HERE, "voices-v1.0.bin"))
 lang = "en-gb" if voice.startswith("b") else "en-us"
@@ -49,7 +50,7 @@ for i, line in enumerate(lines):
     t += len(s) / sr
     if i + 1 < len(lines):
         trailing = line.rstrip().endswith(("…", "..."))
-        gap = 0.75 if trailing else 0.5
+        gap = gaps.get(i, 0.75 if trailing else 0.5)
         audio.append(np.zeros(int(gap * sr), dtype=s.dtype))
         t += gap
 wav = os.path.join(proj, "voiceover.wav")
