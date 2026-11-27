@@ -606,3 +606,88 @@ def windows(tim, n_scenes):
         en = segs[i + 1][0] - 0.15 if i + 1 < n_scenes else end
         out.append((st, en))
     return out
+
+
+# ---------------------------------------------------------------- perspective camera and back/front-view walker
+class PCam:
+    """One-point perspective: z runs away from the camera, x across, y up (height above the floor)."""
+
+    def __init__(self, x, z, h, dir=1, f=900, horizon=None):
+        self.x, self.z, self.h, self.dir, self.f = x, z, h, dir, f
+        self.horizon = horizon if horizon is not None else H * 0.48
+
+    def p(self, x, z, y=0.0):
+        dz = (z - self.z) * self.dir
+        if dz < 5:
+            return None
+        s = self.f / dz
+        return (W / 2 + (x - self.x) * s * self.dir, self.horizon + (self.h - y) * s, s)
+
+    def quad(self, pts):
+        q = [self.p(*pt) for pt in pts]
+        if any(v is None for v in q):
+            return None
+        return [(v[0], v[1]) for v in q]
+
+
+def back_figure(d, sx, sy, h, color, t=0.0, phase=0.0, speed=1.0, facing="away", acc=(), a=1.0, look_back=0.0,
+                name=None, name_a=1.0, arms_up=0.0):
+    """Walker seen from behind ("away") or the front ("toward"), feet at (sx, sy), h px tall."""
+    if h < 3:
+        return
+    c = col(color, a)
+    back = col(dimc(color, 0.65), a)
+    bob = abs(math.sin(phase)) * h * 0.03 * speed
+    hip_y = sy - h * 0.46 - bob
+    for i, cc in ((0, back), (1, c)):
+        side = -1 if i == 0 else 1
+        lift = max(0.0, math.sin(phase + i * math.pi)) * speed
+        foot = (sx + side * h * 0.07, sy - lift * h * 0.12)
+        knee = (sx + side * h * 0.075, lerp(hip_y, foot[1], 0.5) - lift * h * 0.06)
+        limb(d, (sx + side * h * 0.05, hip_y), knee, cc, h * 0.08)
+        limb(d, knee, foot, cc, h * 0.08)
+    sh_y = hip_y - h * 0.3
+    for i in (0, 1):
+        side = -1 if i == 0 else 1
+        sw = math.sin(phase + i * math.pi) * speed
+        hand = (sx + side * h * 0.16, sh_y + h * 0.28 - sw * h * 0.06) if arms_up <= 0 else \
+            (sx + side * h * lerp(0.16, 0.22, arms_up), sh_y + lerp(h * 0.28, -h * 0.25, arms_up))
+        limb(d, (sx + side * h * 0.11, sh_y + h * 0.04), hand, back, h * 0.065)
+    d.rounded_rectangle([sx - h * 0.11, sh_y, sx + h * 0.11, hip_y + h * 0.02], int(h * 0.08), fill=c)
+    if "backpack" in acc and facing == "away":
+        d.rounded_rectangle([sx - h * 0.09, sh_y + h * 0.04, sx + h * 0.09, hip_y - h * 0.04], int(h * 0.04), fill=col(dimc(color, 0.5), a))
+    if "scarf" in acc:
+        d.rounded_rectangle([sx - h * 0.1, sh_y - h * 0.01, sx + h * 0.1, sh_y + h * 0.05], int(h * 0.02), fill=col((230, 80, 70, 255), a))
+    hx, hy, r = sx + look_back * h * 0.02, sh_y - h * 0.13, h * 0.12
+    d.ellipse([hx - r, hy - r, hx + r, hy + r], fill=c)
+    er = r * 0.13
+    if facing == "away":
+        d.chord([hx - r * 1.02, hy - r * 1.05, hx + r * 1.02, hy + r * 0.5], 180, 360, fill=col(dimc(color, 0.55), a))
+        if look_back > 0:
+            d.ellipse([hx + r * 0.55 - er, hy - er, hx + r * 0.55 + er, hy + er], fill=(10, 10, 14, int(255 * a * look_back)))
+    else:
+        d.chord([hx - r * 1.02, hy - r * 1.1, hx + r * 1.02, hy + r * 0.1], 180, 360, fill=col(dimc(color, 0.55), a))
+        for o in (-0.35, 0.35):
+            d.ellipse([hx + o * r - er, hy - er * 1.2, hx + o * r + er, hy + er * 1.2], fill=(10, 10, 14, int(255 * a)))
+    if name and name_a > 0.01:
+        d.text((hx, hy - r - h * 0.12), name, font=font(int(clamp(h * 0.14, 14, 34))), fill=col(color, a * name_a), anchor="mm")
+
+
+def particles(d, cx, cy, spread, k, color, n=30, seed=1, rise=1.0, a=1.0, size=4):
+    """Dust/embers bursting from (cx, cy): k = 0..1 progress."""
+    if k <= 0 or k >= 1:
+        return
+    r = random.Random(seed)
+    for i in range(n):
+        ang = r.uniform(0, math.tau)
+        dist = spread * r.uniform(0.2, 1.0) * k
+        x = cx + math.cos(ang) * dist
+        y = cy + math.sin(ang) * dist * 0.6 - rise * spread * 0.8 * k * r.uniform(0.3, 1)
+        s = size * r.uniform(0.5, 1.5)
+        d.ellipse([x - s, y - s, x + s, y + s], fill=col(tuple(color[:3]) + (255,), a * (1 - k)))
+
+
+def stage_end(d, t, dur, lines, colors=None, size=110, dim=0.55, glow_col=None, y=None):
+    """Standard ending: darken whatever is drawn and put the final message on it."""
+    overlay(d, (0, 0, 0), dim)
+    final_card(d, t, dur, lines, colors, size=size, glow_col=glow_col, y=y)

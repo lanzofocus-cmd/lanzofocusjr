@@ -27,6 +27,7 @@ mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 lines = getattr(mod, "SPOKEN", mod.LINES)
 gaps = getattr(mod, "GAPS", {})  # optional {line index: pause after it, seconds}
+silent = getattr(mod, "SILENT", {})  # optional {line index: length of a silent (animation-only) scene}
 
 k = Kokoro(os.path.join(HERE, "kokoro-v1.0.onnx"), os.path.join(HERE, "voices-v1.0.bin"))
 lang = "en-gb" if voice.startswith("b") else "en-us"
@@ -35,7 +36,7 @@ audio, segs, t = [], [], 0.0
 for i, line in enumerate(lines):
     line = line.replace("**", "")
     if not line.strip():  # silent scene (e.g. a closing card with no voiceover)
-        s = np.zeros(int(3.2 * sr), dtype=np.float32)
+        s = np.zeros(int(silent.get(i, 3.2) * sr), dtype=np.float32)
         segs.append([round(INTRO + t, 3), round(INTRO + t + len(s) / sr, 3)])
         audio.append(s)
         t += len(s) / sr
