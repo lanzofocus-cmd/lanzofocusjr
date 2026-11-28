@@ -757,3 +757,33 @@ def light_hole(d, cx, cy, r, a=1.0, holes=()):
     black = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     black.putalpha(mask.point(lambda v: int(v * a)))
     d._image.alpha_composite(black)
+
+
+# ---------------------------------------------------------------- forgiving box shapes
+# Mirrored characters and cameras easily produce boxes with x1 < x0; PIL raises on those. Normalise them.
+def _norm_box(xy):
+    try:
+        if len(xy) == 4 and all(isinstance(v, (int, float)) for v in xy):
+            x0, y0, x1, y1 = xy
+            return [min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)]
+        if len(xy) == 2 and all(len(p) == 2 for p in xy):
+            (x0, y0), (x1, y1) = xy
+            return [min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)]
+    except TypeError:
+        pass
+    return xy
+
+
+def _wrap(name):
+    orig = getattr(ImageDraw.ImageDraw, name)
+    if getattr(orig, "_normalised", False):
+        return
+
+    def f(self, xy, *a, **k):
+        return orig(self, _norm_box(xy), *a, **k)
+    f._normalised = True
+    setattr(ImageDraw.ImageDraw, name, f)
+
+
+for _n in ("rectangle", "rounded_rectangle", "ellipse", "chord", "pieslice", "arc"):
+    _wrap(_n)
