@@ -1181,6 +1181,33 @@ def m_house(d, t, dur, progress=0.6, lbl=None, watchers=True, **k):
         pill(d, cx, base - hh - roof - 60, lbl, ramp(t, 0.8, 0.3), 26)
 
 
+def m_pipe(d, t, dur, fixed=False, lbl=None, mop=True, **k):
+    """A leaking pipe dripping onto the floor while someone keeps mopping (symptom vs cause)."""
+    a = ramp(t, 0.1, 0.4)
+    base = CY + 270
+    px = W / 2 + 60
+    polyline(d, [(W / 2 - 700, CY - 200), (px, CY - 200), (px, CY - 40)], a, WHITE, 14)
+    d.rectangle([px - 22, CY - 70, px + 22, CY - 40], outline=col(WHITE, a), width=5)
+    if not fixed:
+        for j in range(3):
+            ph = (t * 1.3 + j / 3) % 1
+            y = CY - 30 + ph * (base - CY + 10)
+            d.ellipse([px - 9, y - 14, px + 9, y + 14], fill=col(WHITE, a * (1 - ph * 0.3)))
+        pw = 120 + 90 * ease((t - 0.3) / max(1, dur))
+        d.ellipse([px - pw, base - 16, px + pw, base + 12], outline=col(WHITE, a * 0.8), width=4)
+        label(d, px + 90, CY - 55, "LEAK", a, 22, GREY)
+    else:
+        check(d, px + 70, CY - 60, 1.4, ramp(t, 0.5, 0.4), 8)
+    polyline(d, [(W / 2 - 780, base + 2), (W / 2 + 780, base + 2)], a, col(WHITE, 0.35), 2)
+    if mop:
+        mx = W / 2 - 300 + 30 * math.sin(t * 3)
+        person(d, W / 2 - 360, base, 1.15, a)
+        polyline(d, [(W / 2 - 320, base - 110), (mx + 40, base - 6)], a, WHITE, 6)
+        polyline(d, [(mx, base - 4), (mx + 80, base - 4)], a, WHITE, 10)
+    if lbl:
+        pill(d, W / 2 + 420, CY - 120, lbl, ramp(t, 0.6, 0.3), 26)
+
+
 MOTIFS = {k[2:]: v for k, v in globals().items() if k.startswith("m_") and callable(v)}
 
 
