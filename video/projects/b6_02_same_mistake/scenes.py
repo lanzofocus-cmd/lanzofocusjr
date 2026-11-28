@@ -8,7 +8,7 @@ SPEC = [
     ("Promised yourself you wouldn't do it again…", "doc", dict(title="NEVER AGAIN", empty=False, acc="PROMISED AGAIN")),
     ("And then somehow found yourself doing the exact same thing?", "loop", dict(items=["MISTAKE", "PROMISE", "SAME MISTAKE", "REGRET"], acc="EXACT SAME")),
     ("Maybe you reacted emotionally.", "gauge", dict(lbl="EMOTION", start=0.3, end=0.95, acc="EMOTIONALLY")),
-    ("Maybe you procrastinated.", "phone", dict(lbl="JUST 5 MORE MINUTES", acc="PROCRASTINATED")),
+    ("Maybe you procrastinated.", "notifs", dict(items=["JUST 5 MORE MINUTES", "NEW VIDEO", "NEW MESSAGE"], acc="PROCRASTINATED")),
     ("Maybe you made a decision you knew wasn't good for you.", "path", dict(kind="fork", labels=("GOOD FOR YOU", "EASY"), acc="DECISION KNEW")),
     ("And afterward, you asked yourself:", "mirror", dict(reflect="solid", acc="AFTERWARD")),
     ("\"Why did I do that again?\"", "quote", dict(text="WHY DID I DO THAT AGAIN?", acc="AGAIN")),
