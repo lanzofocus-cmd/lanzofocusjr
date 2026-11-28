@@ -958,7 +958,8 @@ def _icon(d, x, y, kind, a, s=1.6):
     if kind in ("thumb", "thumbdown"):
         f = 1 if kind == "thumb" else -1
         P = lambda px, py: (x + px * s, y + f * py * s)
-        d.rectangle([*P(-13, -1), *P(-9, 14)] if f > 0 else [*P(-13, -14), *P(-9, 1)], fill=c)  # cuff
+        (cx0, cy0), (cx1, cy1) = P(-13, -1), P(-9, 14)
+        d.rectangle([cx0, min(cy0, cy1), cx1, max(cy0, cy1)], fill=c)  # cuff
         d.rounded_rectangle([x - 7 * s, y - (2 if f > 0 else 14) * s, x + 11 * s, y + (14 if f > 0 else 2) * s], int(4 * s), fill=c)
         d.polygon([P(-7, 0), P(-4, -17), P(0, -19), P(3, -15), P(3, 0)], fill=c)  # thumb
         for i in range(3):  # finger creases
