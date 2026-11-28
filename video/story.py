@@ -249,9 +249,16 @@ def stars(d, a, seed=9, n=80, ymax=0.55):
 
 
 def moon(d, x, y, r, a, bg=(0, 0, 0)):
+    if a <= 0.02:
+        return
     glow(d, x, y, r * 3, (200, 210, 255), a * 0.4)
-    d.ellipse([x - r, y - r, x + r, y + r], fill=col((235, 235, 245, 255), a))
-    d.ellipse([x - r + r * 0.45, y - r - r * 0.15, x + r + r * 0.45, y + r - r * 0.15], fill=tuple(bg[:3]) + (int(255 * a),))
+    lay = Image.new("RGBA", (int(r * 2 + 4), int(r * 2 + 4)))
+    ld = ImageDraw.Draw(lay)
+    ld.ellipse([2, 2, 2 + 2 * r, 2 + 2 * r], fill=(235, 235, 245, 255))
+    ld.ellipse([2 + r * 0.45, 2 - r * 0.15, 2 + 2 * r + r * 0.45, 2 + 2 * r - r * 0.15], fill=(0, 0, 0, 0))
+    if a < 0.99:
+        lay.putalpha(lay.getchannel("A").point(lambda v: int(v * a)))
+    paste(d, lay, x, y)
 
 
 def sun(d, x, y, r, a, color=(255, 205, 110, 255)):
