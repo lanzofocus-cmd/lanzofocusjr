@@ -31,7 +31,7 @@ SPEC = [
     ("But constantly stopping construction to ask people who never visit whether they believe you're building one.", "house", dict(progress=0.5, watchers=True, lbl="ARE YOU SURE?", acc="STOPPING NEVER VISIT")),
     ("At some point, you have to keep working.", "house", dict(progress=0.9, watchers=True, acc="KEEP WORKING")),
     ("Not to prove that they were wrong.", "list", dict(items=["PROVE THEM WRONG"], mode="strike", acc="PROVE WRONG")),
-    ("But because the house is yours.", "house", dict(progress=1.0, watchers=False, lbl="YOURS", acc="HOUSE YOURS")),
+    ("But because the house is yours.", "house", dict(drop=True, progress=1.0, watchers=False, lbl="YOURS", acc="HOUSE YOURS")),
     ("Your future is yours.", "key", dict(lbl="YOUR FUTURE", acc="FUTURE YOURS")),
     ("And you don't need every person from your past to approve of the person you're becoming.", "beam", dict(lbl="WHO YOU'RE BECOMING", tags=("OLD YOU", "SAME AS ALWAYS"), acc="APPROVE BECOMING")),
     ("Have you ever felt like someone still sees an old version of you?", "frame", dict(who="THE OLD YOU", fade=True, acc="OLD VERSION")),

@@ -6,18 +6,29 @@ set -euo pipefail
 cd "$(dirname "$0")"
 PROJ=${1:?usage: ./build.sh projects/<name>}
 OUTNAME=$(python3 -c "import ast,sys;t=ast.parse(open('$PROJ/scenes.py').read());print([n.value.value for n in t.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id=='OUTPUT'][0])")
-# optional MUSIC = "twofaced" | "vyzee" in scenes.py picks a best-part bed (assets/bed_<name>.m4a)
+# optional MUSIC = "twofaced" | "vyzee" in scenes.py: a beat-cut track (tools_track.py) whose drop lands on the
+# line marked drop=True in SPEC (or on frame 0 when no line is marked); scene cuts and pulses follow its beats.
 MUSIC=$(python3 -c "import ast;t=ast.parse(open('$PROJ/scenes.py').read());print(([n.value.value for n in t.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id=='MUSIC']+[''])[0])")
-if [ -n "$MUSIC" ] && [ -f "assets/bed_$MUSIC.m4a" ]; then TRACK="assets/bed_$MUSIC.m4a"; FADEIN=0.05; else TRACK=assets/music.m4a; FADEIN=1.5; fi
 mkdir -p output
 TMP=$(mktemp -d)
-python3 render.py "$PROJ/timings.json" "$TMP/silent.mp4" "$PROJ/scenes.py"
-python3 tools_sfx.py "$PROJ/timings.json" "$TMP/sfx.wav"
+if [ -n "$MUSIC" ]; then
+  DROP=$(python3 -c "
+import sys,json,importlib.util as u;sys.path.insert(0,'.')
+s=u.spec_from_file_location('s','$PROJ/scenes.py');m=u.module_from_spec(s);s.loader.exec_module(m)
+i=[k for k,it in enumerate(m.SPEC) if len(it)>2 and it[2].get('drop')]
+print(json.load(open('$PROJ/timings.json'))['segments'][i[0]][0] if i else -1)")
+  python3 tools_track.py "$MUSIC" "$PROJ/timings.json" "$DROP" "$TMP/music.wav" "$TMP/beats.json"
+  TRACK="$TMP/music.wav"; LOOP=""; FADEIN=0.02
+else
+  TRACK=assets/music.m4a; LOOP="-stream_loop -1"; FADEIN=1.5
+fi
+python3 render.py "$PROJ/timings.json" "$TMP/silent.mp4" "$PROJ/scenes.py" "$TMP/beats.json" "$TMP/cuts.json"
+python3 tools_sfx.py "$PROJ/timings.json" "$TMP/sfx.wav" "$TMP/cuts.json"
 J="$PROJ/timings.json"
 END=$(python3 -c "import json;print(json.load(open('$J'))['end'])")
 INTRO_MS=$(python3 -c "import json;print(int(json.load(open('$J'))['intro']*1000))")
 FADE=$(python3 -c "print($END-2.5)")
-ffmpeg -v error -y -i "$TMP/silent.mp4" -i "$PROJ/voiceover.mp3" -stream_loop -1 -i "$TRACK" -i "$TMP/sfx.wav" -filter_complex "\
+ffmpeg -v error -y -i "$TMP/silent.mp4" -i "$PROJ/voiceover.mp3" $LOOP -i "$TRACK" -i "$TMP/sfx.wav" -filter_complex "\
 [1:a]adelay=$INTRO_MS|$INTRO_MS,aresample=44100,aformat=channel_layouts=stereo,apad,atrim=0:$END,asplit=2[vo][sc];\
 [2:a]aresample=44100,aformat=channel_layouts=stereo,atrim=0:$END,volume=0.45,afade=t=in:d=$FADEIN,afade=t=out:st=$FADE:d=2.5[mu];\
 [mu][sc]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=400[duck];\

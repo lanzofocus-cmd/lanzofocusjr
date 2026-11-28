@@ -31,7 +31,7 @@ SPEC = [
     ("You don't have to attack someone.", "list", dict(items=["ATTACK"], mode="strike", acc="ATTACK")),
     ("You don't have to win.", "list", dict(items=["ATTACK", "WIN"], mode="strike", acc="WIN")),
     ("You simply have to stop assuming that silence is always the safest option.", "lock", dict(lbl="SILENCE = SAFE?", opening=True, acc="SILENCE SAFEST")),
-    ("Sometimes the conversation you've been avoiding…", "bubbles", dict(texts=["CAN WE TALK?"], acc="CONVERSATION AVOIDING")),
+    ("Sometimes the conversation you've been avoiding…", "bubbles", dict(drop=True, texts=["CAN WE TALK?"], acc="CONVERSATION AVOIDING")),
     ("Is the first step toward understanding.", "stairs", dict(n=6, climb=1, acc="FIRST STEP UNDERSTANDING")),
     ("What's one thing you think people need to communicate more honestly about?", "brain", dict(says="BE HONEST ABOUT...", acc="COMMUNICATE HONESTLY")),
     ("Comment below.", "cta", dict(kind="comment", lbl="SAY IT HONESTLY", acc="COMMENT")),

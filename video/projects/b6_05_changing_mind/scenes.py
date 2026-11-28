@@ -23,7 +23,7 @@ SPEC = [
     ("Are they the people who never change their minds?", "lock", dict(lbl="NEVER CHANGE", acc="NEVER CHANGE")),
     ("Or the people who can listen carefully, examine evidence, and adjust their beliefs when necessary?", "list", dict(items=["LISTEN", "EXAMINE", "ADJUST"], mode="check", acc="LISTEN EXAMINE ADJUST")),
     ("Changing your mind doesn't automatically mean you were weak.", "list", dict(items=["WEAK"], mode="strike", acc="CHANGING WEAK")),
-    ("It may mean you're finally strong enough to prioritize truth over your ego.", "hud", dict(lbl="TRUTH", start=30, end=95, lbl2="EGO", start2=90, end2=15, icons=None, crowd=0, acc="STRONG TRUTH EGO")),
+    ("It may mean you're finally strong enough to prioritize truth over your ego.", "hud", dict(drop=True, lbl="TRUTH", start=30, end=95, lbl2="EGO", start2=90, end2=15, icons=None, crowd=0, acc="STRONG TRUTH EGO")),
     ("You don't have to defend every opinion you have.", "shield", dict(front="EVERY OPINION", back="?", acc="DEFEND EVERY")),
     ("You don't have to protect every old version of your thinking.", "shed", dict(old="OLD THINKING", new="NEW THINKING", acc="PROTECT OLD")),
     ("You are allowed to say:", "pulse", dict(acc="ALLOWED")),

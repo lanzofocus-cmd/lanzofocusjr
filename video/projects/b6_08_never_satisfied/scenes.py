@@ -30,7 +30,7 @@ SPEC = [
     ("That you forget to experience the one you just earned.", "frame", dict(who="WHAT YOU EARNED", dashed_fig=True, acc="FORGET EARNED")),
     ("Ambition should help you move forward.", "path", dict(kind="straight", acc="AMBITION FORWARD")),
     ("It shouldn't make you incapable of appreciating the present.", "sunrise", dict(acc="APPRECIATING PRESENT")),
-    ("You can want more…", "stairs", dict(n=7, climb=4, acc="MORE")),
+    ("You can want more…", "stairs", dict(drop=True, n=7, climb=4, acc="MORE")),
     ("Without treating what you already have as worthless.", "receipt", dict(items=[("WHAT YOU HAVE", "PRICELESS")], total="NOT WORTHLESS", acc="ALREADY WORTHLESS")),
     ("What's something you worked hard for that you didn't appreciate enough after achieving it?", "frame", dict(who="IT", new="YOU, LATER", acc="WORKED APPRECIATE")),
     ("Share it.", "cta", dict(kind="comment", lbl="SHARE IT", acc="SHARE")),

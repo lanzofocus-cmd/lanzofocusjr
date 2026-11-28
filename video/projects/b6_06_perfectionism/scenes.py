@@ -34,7 +34,7 @@ SPEC = [
     ("\"How do I make this real enough to improve?\"", "quote", dict(text="HOW DO I MAKE THIS REAL ENOUGH TO IMPROVE?", acc="REAL IMPROVE")),
     ("The goal isn't to become someone who produces flawless work immediately.", "list", dict(items=["FLAWLESS, IMMEDIATELY"], mode="strike", acc="FLAWLESS IMMEDIATELY")),
     ("The goal is to become someone who can create, evaluate, learn, and improve.", "loop", dict(items=["CREATE", "EVALUATE", "LEARN", "IMPROVE"], lbl="THE REAL LOOP", acc="CREATE EVALUATE LEARN IMPROVE")),
-    ("Because finished work gives you something perfectionism never can.", "doc", dict(title="FINISHED", empty=False, stamp="DONE", acc="FINISHED PERFECTIONISM NEVER")),
+    ("Because finished work gives you something perfectionism never can.", "doc", dict(drop=True, title="FINISHED", empty=False, stamp="DONE", acc="FINISHED PERFECTIONISM NEVER")),
     ("Progress you can actually see.", "chart", dict(kind="up", lbl="VISIBLE PROGRESS", acc="PROGRESS SEE")),
     ("What's something you've been delaying because you want it to be perfect?", "hourglass", dict(acc="DELAYING PERFECT")),
     ("Name it in the comments.", "cta", dict(kind="comment", lbl="NAME IT", acc="NAME COMMENTS")),

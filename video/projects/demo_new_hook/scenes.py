@@ -11,7 +11,7 @@ SPEC = [
     ("Some people only know your past.", "frame", dict(who="YOUR PAST", acc="PAST")),
     ("And some people simply prefer you exactly where they understand you.", "cage", dict(words=["STAY HERE", "STAY THE SAME"], acc="PREFER UNDERSTAND")),
     ("Listen carefully.", "bubbles", dict(texts=["HERE'S WHAT I THINK."], acc="LISTEN")),
-    ("But decide for yourself.", "beam", dict(lbl="YOUR DIRECTION", tags=("STAY HERE", "WHY CHANGE?", "BE REALISTIC"), acc="DECIDE YOURSELF")),
+    ("But decide for yourself.", "beam", dict(drop=True, lbl="YOUR DIRECTION", tags=("STAY HERE", "WHY CHANGE?", "BE REALISTIC"), acc="DECIDE YOURSELF")),
     ("Share this with someone who needs permission to stop living according to everybody else's expectations.", "cta", dict(kind="share", lbl="SEND IT TO THEM", acc="SHARE PERMISSION EXPECTATIONS")),
     ("", "follow"),
 ]

@@ -10,6 +10,8 @@ SR = 44100
 tim = json.load(open(sys.argv[1]))
 end = tim["end"]
 starts = [0.0] + [s for s, _ in tim["segments"]]
+if len(sys.argv) > 3:  # actual (beat-snapped) scene cut times written by render.py
+    starts = [0.0] + json.load(open(sys.argv[3]))
 out = np.zeros((int(end * SR) + SR, 2), dtype=np.float32)
 rng = np.random.default_rng(1)
 

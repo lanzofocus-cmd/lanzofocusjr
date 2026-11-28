@@ -29,7 +29,7 @@ SPEC = [
     ("Maybe you're afraid of doing it badly.", "gauge", dict(lbl="FEAR", start=0.2, end=0.7, acc="AFRAID BADLY")),
     ("Maybe you're overwhelmed.", "tangle", dict(lbl="OVERWHELMED", acc="OVERWHELMED")),
     ("The solution isn't always to tell yourself to try harder.", "list", dict(items=["TRY HARDER"], mode="strike", acc="SOLUTION HARDER")),
-    ("Sometimes the solution is to understand the system that keeps producing the same result.", "loop", dict(items=["SITUATION", "FEELING", "DECISION", "RESULT"], lbl="THE SYSTEM", acc="UNDERSTAND SYSTEM RESULT")),
+    ("Sometimes the solution is to understand the system that keeps producing the same result.", "loop", dict(drop=True, items=["SITUATION", "FEELING", "DECISION", "RESULT"], lbl="THE SYSTEM", acc="UNDERSTAND SYSTEM RESULT")),
     ("Don't just ask:", "arrows", dict(items=["THE QUESTION"], acc="ASK")),
     ("\"Why did I fail?\"", "quote", dict(text="WHY DID I FAIL?", acc="FAIL")),
     ("Ask:", "pulse", dict(acc="")),

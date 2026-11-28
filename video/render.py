@@ -546,11 +546,25 @@ def main():
     segs = timing["segments"]
     end = timing["end"]
     # scene windows: each scene runs from its segment start to the next segment start
-    windows = [("hook", 0.0, intro, hook) if hook else ("title", 0.0, intro, s_title)]
+    # optional beat grid (tools_track.py): scene cuts snap to beats, frames pulse on every beat
+    beats, drop = [], -1
+    if len(sys.argv) > 4 and os.path.exists(sys.argv[4]):
+        bj = json.load(open(sys.argv[4]))
+        beats, drop = bj["beats"], bj["drop"]
+
+    def cut_at(seg_start, default):
+        """Nearest beat to the default cut, never more than 0.55 s before or after the line starts."""
+        cand = [b for b in beats if seg_start - 0.55 <= b <= seg_start + 0.02]
+        return min(cand, key=lambda b: abs(b - default)) if cand else default
+
+    starts = [cut_at(intro, intro)] + [cut_at(segs[i][0], segs[i][0] - 0.15) for i in range(1, len(SCENES))]
+    windows = [("hook", 0.0, starts[0], hook) if hook else ("title", 0.0, starts[0], s_title)]
     for i, fn in enumerate(SCENES):
-        st = segs[i][0] - 0.15 if i else intro
-        en = (segs[i + 1][0] - 0.15) if i + 1 < len(SCENES) else end
+        st = starts[i]
+        en = starts[i + 1] if i + 1 < len(SCENES) else end
         windows.append((fn.__name__, st, en, fn))
+    if len(sys.argv) > 5:
+        json.dump(starts, open(sys.argv[5], "w"))
     bg = make_background()
     wm_layer = Image.new("RGBA", (W, H))
     ImageDraw.Draw(wm_layer).text((W - 60, H - 50), "@lanzofocusjr", font=font(26, False), fill=(255, 255, 255, 150), anchor="rm")
@@ -571,6 +585,17 @@ def main():
                 break
         else:
             fade = 0
+        kick, flash = 0.0, 0.0
+        if beats:
+            past = [b for b in beats if b <= T]
+            if past:
+                kick = math.exp(-(T - past[-1]) / 0.14)
+            big = drop > 0 and 0 <= T - drop < 6.0  # the drop: harder hits for a few bars
+            zoom *= 1 + (0.022 if big else 0.009) * kick
+            if drop > 0 and T >= drop:
+                flash = 0.6 * math.exp(-(T - drop) / 0.2)
+            elif T < 0.5:  # the hook opens on the song's drop too
+                flash = 0.35 * math.exp(-T / 0.15)
         if zoom > 1.0005:  # slow camera push-in towards the frame centre
             inv = 1 / zoom
             layer = layer.transform((W, H), Image.AFFINE, (inv, 0, W / 2 * (1 - inv), 0, inv, H / 2 * (1 - inv)), Image.BILINEAR)
@@ -580,10 +605,12 @@ def main():
         small = layer.resize((W // 4, H // 4), Image.BILINEAR).filter(ImageFilter.GaussianBlur(6))
         glow = small.resize((W, H), Image.BILINEAR)
         frame = bg.copy().convert("RGBA")
-        ga = glow.getchannel("A").point(lambda v: int(v * 0.9))
+        ga = glow.getchannel("A").point(lambda v, g=0.9 + 0.5 * kick: min(255, int(v * g)))
         glow.putalpha(ga)
         frame.alpha_composite(glow)
         frame.alpha_composite(layer)
+        if flash > 0.01:
+            frame = Image.blend(frame, Image.new("RGBA", (W, H), (255, 255, 255, 255)), min(0.6, flash) * 0.5)
         frame.alpha_composite(wm_layer)
         proc.stdin.write(frame.convert("RGB").tobytes())
         if fi % 150 == 0:

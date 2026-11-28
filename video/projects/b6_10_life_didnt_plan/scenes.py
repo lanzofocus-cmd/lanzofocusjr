@@ -29,7 +29,7 @@ SPEC = [
     ("Take your goals seriously.", "list", dict(items=["GOALS"], mode="check", acc="SERIOUSLY")),
     ("Build something.", "house", dict(progress=0.8, watchers=False, lbl="SOMETHING", acc="BUILD")),
     ("But leave enough room for the unexpected.", "puzzle", dict(missing=True, lbl="ROOM FOR SURPRISES", acc="ROOM UNEXPECTED")),
-    ("Because sometimes the most meaningful parts of your life…", "dots", dict(connect=True, acc="MEANINGFUL")),
+    ("Because sometimes the most meaningful parts of your life…", "dots", dict(drop=True, connect=True, acc="MEANINGFUL")),
     ("Will be the things you never knew to plan for.", "sunrise", dict(acc="NEVER PLAN")),
     ("What's one unexpected thing that changed your direction or perspective?", "path", dict(kind="fork", labels=("THE PLAN", "WHAT HAPPENED"), acc="UNEXPECTED DIRECTION PERSPECTIVE")),
     ("Share it in the comments.", "cta", dict(kind="comment", lbl="YOUR UNEXPECTED TURN", acc="SHARE COMMENTS")),

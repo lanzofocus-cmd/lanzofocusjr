@@ -1194,6 +1194,7 @@ def build(spec):
             continue
         kw = dict(kw)
         acc = kw.pop("acc", None)
+        kw.pop("drop", None)  # marks the key line the song's drop lands on (used by build.sh)
         if not text.strip():
             scenes.append(lambda d, t, dur, fn=MOTIFS[motif], kw=kw: fn(d, t, dur, **kw))
             continue

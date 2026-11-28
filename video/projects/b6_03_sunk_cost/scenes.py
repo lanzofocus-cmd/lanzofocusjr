@@ -35,7 +35,7 @@ SPEC = [
     ("Sometimes stopping is wisdom.", "door", dict(open_=True, lbl="WALK AWAY", acc="STOPPING WISDOM")),
     ("The difference is whether you're moving forward because the future is worth it…", "compass", dict(lbl="THE FUTURE", acc="FORWARD FUTURE WORTH")),
     ("Or because you refuse to let go of the past.", "cage", dict(words=["ALREADY INVESTED", "TOO LATE NOW"], acc="REFUSE PAST")),
-    ("Don't let yesterday's investment decide tomorrow's direction.", "beam", dict(lbl="TOMORROW", tags=("3 YEARS", "THE MONEY", "THE EFFORT"), acc="YESTERDAY'S TOMORROW'S DIRECTION")),
+    ("Don't let yesterday's investment decide tomorrow's direction.", "beam", dict(drop=True, lbl="TOMORROW", tags=("3 YEARS", "THE MONEY", "THE EFFORT"), acc="YESTERDAY'S TOMORROW'S DIRECTION")),
     ("Have you ever continued something simply because you had already invested so much in it?", "coins", dict(stacks=4, lbl="INVESTED", acc="CONTINUED INVESTED")),
     ("Share your experience.", "cta", dict(kind="comment", lbl="YOUR STORY", acc="SHARE EXPERIENCE")),
     ("Someone might recognize the same trap in their own life.", "crowd", dict(n=7, highlight=4, highlight_label="SAME TRAP", acc="RECOGNIZE TRAP")),

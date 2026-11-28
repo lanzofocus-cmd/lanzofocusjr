@@ -29,7 +29,7 @@ SPEC = [
     ("You don't need to know every step of the journey.", "path", dict(kind="winding", fog=True, acc="EVERY STEP")),
     ("You need to know enough to take the first one.", "stairs", dict(n=7, climb=1, highlight=0, acc="ENOUGH FIRST")),
     ("Because the person waiting for perfect readiness and the person taking imperfect action are both uncertain.", "fog", dict(lbl="BOTH UNCERTAIN", acc="WAITING IMPERFECT BOTH UNCERTAIN")),
-    ("But only one of them is learning.", "beam", dict(lbl="LEARNING", crowd=1, acc="ONLY LEARNING")),
+    ("But only one of them is learning.", "beam", dict(drop=True, lbl="LEARNING", crowd=1, acc="ONLY LEARNING")),
     ("So stop treating uncertainty like a stop sign.", "door", dict(open_=True, lbl="UNCERTAINTY", acc="UNCERTAINTY STOP")),
     ("Sometimes it's simply the beginning.", "sunrise", dict(acc="BEGINNING")),
     ("What's something you've been waiting to feel ready for?", "hourglass", dict(acc="WAITING READY")),

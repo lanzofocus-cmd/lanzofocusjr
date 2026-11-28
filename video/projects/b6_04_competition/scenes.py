@@ -31,7 +31,7 @@ SPEC = [
     ("You don't need to win every race.", "list", dict(items=["WIN EVERY RACE"], mode="strike", acc="WIN EVERY RACE")),
     ("You don't even need to be moving at the same speed as everyone else.", "path", dict(kind="winding", acc="SAME SPEED")),
     ("Your goal isn't to defeat every person you encounter.", "crowd", dict(n=9, acc="DEFEAT EVERY")),
-    ("Your goal is to build a life you're proud of.", "house", dict(progress=0.85, lbl="A LIFE YOU'RE PROUD OF", watchers=False, acc="BUILD PROUD")),
+    ("Your goal is to build a life you're proud of.", "house", dict(drop=True, progress=0.85, lbl="A LIFE YOU'RE PROUD OF", watchers=False, acc="BUILD PROUD")),
     ("And that becomes much easier when you stop treating other people's progress like an attack on your own.", "network", dict(nodes=["THEIR WIN", "YOUR WIN", "THEIR SKILL", "YOUR SKILL"], tangled=False, acc="EASIER PROGRESS ATTACK")),
     ("Think of someone you admire, not someone you're jealous of.", "scale", dict(left="ADMIRE", right="JEALOUS", tip=-1, acc="ADMIRE JEALOUS")),
     ("What is one thing you could learn from them?", "book", dict(chapter="FROM THEM", text="ONE LESSON", acc="ONE LEARN")),
