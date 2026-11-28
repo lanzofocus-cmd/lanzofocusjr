@@ -10,11 +10,14 @@
 
 ## Music
 - Two tracks: "VYZEE – Slowed" (`video/assets/music.m4a`) and "two faced" by purc (`video/assets/music_twofaced.m4a`,
-  added from batch 6 on as the user's new choice). New videos set `MUSIC = "twofaced"` (or `"vyzee"`) in `scenes.py`.
-- Always start on the song's best part: `MUSIC` picks a pre-built bed `assets/bed_<name>.m4a` that begins on the
-  drop and loops only the strong section (`tools_music.py <src> <start> <end> <out>`; two faced = 23.98–59.8 s,
-  VYZEE = 4.0–60 s). Without `MUSIC` the old behaviour (music.m4a from 0 s, 1.5 s fade-in) is used.
-- If the user sends a new audio file, find its best part (energy/bass analysis), build a bed, and use it.
+  the clean song the user sent; never use the earlier copy that had narration on it).
+  Alternate them every video (odd = twofaced, even = vyzee) unless the user says otherwise: `MUSIC = "..."` in scenes.py.
+- Music is cut to the beat (`tools_track.py`, called by build.sh): the video opens on the song's drop (hook), the
+  song's own build-up plays before the key line, and the drop hits exactly on the line marked `drop=True` in SPEC
+  (pick the video's strongest realization). Scene cuts snap to beats, frames pulse on every beat, and the drop
+  gets a flash + harder pulses. Song data (drop time, BPM, loop length) lives in `SONGS` in tools_track.py:
+  two faced drop 27.67 s @ 73.7 BPM; VYZEE first beat 4.41 s @ 102.6 BPM (no build-up, so it uses a one-beat dropout).
+- If the user sends a new audio file, find its drop and BPM (onset/energy analysis), add it to `SONGS`, and use it.
 
 ## Style and format
 - 16:9, 1920x1080, 30 fps. Black background with a soft centre glow, glowing white line icons and figures,
