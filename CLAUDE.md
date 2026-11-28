@@ -53,3 +53,12 @@ Cinematic short-story videos with their own world, characters, palette and camer
   optional `SFX_VOLUME` (build.sh mix level) and `WHOOSH_LEVEL`. `tools_sfx.py` picks it up automatically.
 - `scenes.py` may set `SPOKEN` (text sent to TTS, e.g. without leading "…") and `GAPS = {line index: pause}`.
 - A scene function with `.seamless = True` continues the previous shot (no dip to black between them).
+
+## Story animations (batch 5, `projects/b5_*`, outputs 101–150)
+The 50 "cinematic motivational animations": same story toolkit as batch 4, one world per film.
+- `scenes.py` may set `SILENT = {line index: seconds}` for animation-only scenes (empty LINES entries). Usual layout:
+  silent hook → narrated scenes → silent final card (`stage_end`) → `s_follow`.
+- Render queue: mark a finished project with `touch projects/<name>/.ready`; workers
+  (`nohup ./tools_queue.sh 'b5_*' > logs/queue_N.log 2>&1 &`, up to 3) build every ready project that has no output yet.
+  After a container restart, remove stale `projects/*/.lock` dirs and restart the workers.
+- `story.py` extras: `light_hole`, `particles`, `stage_end`, `PCam`/`back_figure`; box shapes accept reversed corners.
