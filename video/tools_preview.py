@@ -6,11 +6,12 @@ spec = importlib.util.spec_from_file_location("scenes", sys.argv[1] + "/scenes.p
 m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 R.TITLE = m.TITLE; R.FOLLOW_SUB = getattr(m, "FOLLOW_SUB", R.FOLLOW_SUB)
 t = float(sys.argv[3]) if len(sys.argv) > 3 else 3.0
-fns = [R.s_title] + m.SCENES
+HOOK = getattr(m, "HOOK", None)
+fns = [HOOK or R.s_title] + m.SCENES
 tiles = []
 for fn in fns:
     layer = Image.new("RGBA", (R.W, R.H)); d = ImageDraw.Draw(layer)
-    fn(d, 1.5 if fn is R.s_title else t, 4.0)
+    fn(d, 1.5 if fn in (R.s_title, HOOK) else t, 4.0)
     bg = R.make_background().convert("RGBA"); bg.alpha_composite(layer)
     tiles.append(bg.convert("RGB").resize((480, 270)))
 rows = math.ceil(len(tiles) / 4)

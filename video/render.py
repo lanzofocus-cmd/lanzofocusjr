@@ -525,6 +525,7 @@ def make_background():
 
 def main():
     global TITLE, SCENES
+    hook = None
     timing = json.load(open(sys.argv[1]))
     out = sys.argv[2]
     if len(sys.argv) > 3:  # project scenes module, e.g. projects/foo/scenes.py
@@ -536,6 +537,7 @@ def main():
         TITLE = getattr(mod, "TITLE", TITLE)
         globals()["TITLE"] = TITLE
         globals()["FOLLOW_SUB"] = getattr(mod, "FOLLOW_SUB", FOLLOW_SUB)
+        hook = getattr(mod, "HOOK", None)  # visual cold-open scene replacing the text title card
         # scenes imported via `from render import ...` live in a second copy of this module
         if "render" in sys.modules:
             sys.modules["render"].TITLE = TITLE
@@ -544,7 +546,7 @@ def main():
     segs = timing["segments"]
     end = timing["end"]
     # scene windows: each scene runs from its segment start to the next segment start
-    windows = [("title", 0.0, intro, s_title)]
+    windows = [("hook", 0.0, intro, hook) if hook else ("title", 0.0, intro, s_title)]
     for i, fn in enumerate(SCENES):
         st = segs[i][0] - 0.15 if i else intro
         en = (segs[i + 1][0] - 0.15) if i + 1 < len(SCENES) else end
@@ -563,7 +565,8 @@ def main():
         for name, st, en, fn in windows:
             if st <= T < en:
                 fn(d, T - st, en - st)
-                fade = min(ramp(T - st, 0, 0.25), 1 - ramp(T, en - 0.25, 0.25))
+                fade_in = 1.0 if name == "hook" else ramp(T - st, 0, 0.25)  # the hook is visible from frame 0
+                fade = min(fade_in, 1 - ramp(T, en - 0.25, 0.25))
                 zoom = 1.0 + CAMERA_PUSH * clamp((T - st) / max(0.1, en - st))
                 break
         else:

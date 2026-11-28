@@ -9,13 +9,27 @@
   voice_id `6f98d3dd-324f-4845-8c28-c1d1647a06cd`). Only use it if the user asks again.
 
 ## Music
-- Always use the same background track (`video/assets/music.m4a`, "VYZEE – Slowed") for every video,
-  unless the user sends a new audio file. If they do, replace `video/assets/music.m4a` with it.
+- Two tracks: "VYZEE – Slowed" (`video/assets/music.m4a`) and "two faced" by purc (`video/assets/music_twofaced.m4a`,
+  added from batch 6 on as the user's new choice). New videos set `MUSIC = "twofaced"` (or `"vyzee"`) in `scenes.py`.
+- Always start on the song's best part: `MUSIC` picks a pre-built bed `assets/bed_<name>.m4a` that begins on the
+  drop and loops only the strong section (`tools_music.py <src> <start> <end> <out>`; two faced = 23.98–59.8 s,
+  VYZEE = 4.0–60 s). Without `MUSIC` the old behaviour (music.m4a from 0 s, 1.5 s fade-in) is used.
+- If the user sends a new audio file, find its best part (energy/bass analysis), build a bed, and use it.
 
 ## Style and format
 - 16:9, 1920x1080, 30 fps. Black background with a soft centre glow, glowing white line icons and figures,
   bold uppercase captions revealed word by word, `@lanzofocusjr` watermark at bottom right. No TikTok logo.
 - Background music sits under the voice, ducked, fading in and out.
+
+## Hook (first 3 s)
+- Never open on a text-only title card. New videos set
+  `HOOK = hook(TITLE, "<motif>", dict(...))`: a moving visual from frame 0 (counters, crowd, figure) with the title
+  slammed in word by word as a glowing boxed headline, over the song's drop.
+- Second style reference (user's TikTok, clipzy.editss style): HUD stat panels with counting percentages
+  ("PUBLIC APPROVAL 93%"), grey crowds with a glowing white hero, energy batteries, a wall of light between the
+  crowd and "YOUR FUTURE". Kit motifs: `hud` (lbl/start/end, lbl2/start2/end2, icons thumb|thumbdown|heart|q,
+  tag, cross, count), `battery`, `beam` (lbl, tags). Use them in hooks and in body scenes.
+- Sample: `projects/demo_new_hook` (video 151 re-cut with the new hook + two faced).
 
 ## Pipeline (`video/`)
 Each video lives in `video/projects/<name>/` with `scenes.py`, `voiceover.mp3` and `timings.json`.

@@ -10,7 +10,7 @@ LINES + SCENES for render.py. Captions are wrapped automatically; pass acc="WORD
     LINES, SCENES = build(SPEC)
 """
 import math
-from render import (W, H, CY, WHITE, GREY, DIM, font, clamp, ramp, lerp, col, polyline, arc_pts, circle,
+from render import (W, H, CY, WHITE, GREY, DIM, font, clamp, ease, ramp, lerp, col, polyline, arc_pts, circle,
                     person, dashed_person, dashed, pill, label, check, caption, s_follow)
 
 BLACK = (0, 0, 0, 255)
@@ -952,6 +952,133 @@ def m_blank(d, t, dur, **k):
     pass
 
 
+# ================================================================ HUD motifs (stat-panel style)
+def _icon(d, x, y, kind, a, s=1.6):
+    c = col(WHITE, a)
+    if kind in ("thumb", "thumbdown"):
+        f = 1 if kind == "thumb" else -1
+        P = lambda px, py: (x + px * s, y + f * py * s)
+        d.rectangle([*P(-13, -1), *P(-9, 14)] if f > 0 else [*P(-13, -14), *P(-9, 1)], fill=c)  # cuff
+        d.rounded_rectangle([x - 7 * s, y - (2 if f > 0 else 14) * s, x + 11 * s, y + (14 if f > 0 else 2) * s], int(4 * s), fill=c)
+        d.polygon([P(-7, 0), P(-4, -17), P(0, -19), P(3, -15), P(3, 0)], fill=c)  # thumb
+        for i in range(3):  # finger creases
+            yy = y + f * (3 + i * 4) * s
+            d.line([(x + 2 * s, yy), (x + 11 * s, yy)], fill=(0, 0, 0, int(255 * a)), width=2)
+    elif kind == "heart":
+        pts = [(x + 16 * s * math.sin(q) ** 3 * 0.75,
+                y - (13 * math.cos(q) - 5 * math.cos(2 * q) - 2 * math.cos(3 * q) - math.cos(4 * q)) * s * 0.75)
+               for q in [i * math.pi / 30 for i in range(61)]]
+        polyline(d, pts, 1, c, 3)
+    elif kind == "q":
+        ftext(d, x, y, "?", 34, a)
+
+
+def _panel(d, cx, top, rows, t, a, w=560):
+    """rows: list of (label, value 0..100). Draws a bordered stat panel; returns its bottom y."""
+    h = 34 + 62 * len(rows)
+    d.rounded_rectangle([cx - w / 2, top, cx + w / 2, top + h], 14, outline=col(WHITE, a), width=3, fill=col(BLACK, a * 0.85))
+    for i, (lb, v) in enumerate(rows):
+        y = top + 34 + i * 62
+        ftext(d, cx - w / 2 + 28, y, lb, 24, a * 0.8, SOFT, anchor="lm")
+        ftext(d, cx + w / 2 - 28, y, f"{int(round(v))}%", 40, a, anchor="rm")
+        bx0, bx1, by = cx - w / 2 + 28, cx + w / 2 - 28, y + 30
+        d.rounded_rectangle([bx0, by - 4, bx1, by + 4], 4, outline=col(GREY, a), width=2)
+        if v > 0.5:
+            d.rounded_rectangle([bx0, by - 4, bx0 + (bx1 - bx0) * v / 100, by + 4], 4, fill=col(WHITE, a))
+    return top + h
+
+
+def _crowd_xs(n, gap=125, hole=170):
+    xs = []
+    for i in range(n):
+        side = -1 if i % 2 == 0 else 1
+        k = i // 2
+        xs.append(W / 2 + side * (hole + k * gap))
+    return sorted(xs)
+
+
+def m_hud(d, t, dur, lbl="PUBLIC APPROVAL", start=0, end=93, lbl2=None, start2=0, end2=0,
+          cross=False, crowd=6, icons="thumb", tag=None, tag_dim=False, hero=True, count=1.4, **k):
+    """Stat panel counting start->end, wired to a glowing figure in a grey crowd."""
+    a = ramp(t, 0.05, 0.3)
+    base = CY + 250
+    p = ease((t - 0.2) / count)
+    rows = [(lbl, lerp(start, end, p))]
+    if lbl2:
+        rows.append((lbl2, lerp(start2, end2, p)))
+    top = 345
+    bottom = _panel(d, W / 2, top, rows, t, a)
+    if hero:
+        polyline(d, [(W / 2, bottom), (W / 2, base - 175)], ramp(t, 0.3, 0.4), col(WHITE, a * 0.7), 3)
+        person(d, W / 2, base, 1.15, a)
+    for i, x in enumerate(_crowd_xs(crowd)):
+        ia = ramp(t, 0.15 + 0.05 * i, 0.3)
+        person(d, x, base, 0.8, ia * 0.8, GREY)
+        if icons:
+            _icon(d, x, base - 165, icons, ramp(t, 0.5 + 0.08 * i, 0.25) * 0.9)
+    polyline(d, [(W / 2 - 700, base + 2), (W / 2 + 700, base + 2)], a, col(WHITE, 0.35), 2)
+    if tag:
+        pill(d, W / 2, bottom + 70, tag, ramp(t, 0.9, 0.3) * (0.45 if tag_dim else 1), 24, inverted=not tag_dim)
+    if cross:
+        c0 = 0.9
+        pad = 40
+        polyline(d, [(W / 2 - 280 + pad, top - 10), (W / 2 + 280 - pad, bottom + 10)], ramp(t, c0, 0.2), WHITE, 9)
+        polyline(d, [(W / 2 + 280 - pad, top - 10), (W / 2 - 280 + pad, bottom + 10)], ramp(t, c0 + 0.15, 0.2), WHITE, 9)
+
+
+def m_battery(d, t, dur, lbl="YOUR ENERGY", start=1.0, end=0.15, drains=5, **k):
+    """Your battery drains into the people around you."""
+    a = ramp(t, 0.05, 0.3)
+    base = CY + 250
+    lv = lerp(start, end, ease((t - 0.3) / max(0.8, dur * 0.6)))
+    bx, by, bw, bh = W / 2 + 230, 430, 270, 100
+    ftext(d, bx + bw / 2, by - 40, lbl, 24, a * 0.8, SOFT)
+    d.rounded_rectangle([bx, by, bx + bw, by + bh], 12, outline=col(WHITE, a), width=5)
+    d.rectangle([bx + bw, by + 32, bx + bw + 14, by + bh - 32], fill=col(WHITE, a))
+    cells = 5
+    on = math.ceil(lv * cells - 0.01)
+    for i in range(cells):
+        x0 = bx + 12 + i * (bw - 24) / cells
+        d.rounded_rectangle([x0 + 3, by + 12, x0 + (bw - 24) / cells - 3, by + bh - 12], 5,
+                            fill=col(WHITE, a * (1 if i < on else 0.08)))
+    ftext(d, bx + bw + 40, by + bh / 2, f"{int(lv * 100)}%", 44, a, anchor="lm")
+    person(d, bx + bw / 2, base, 1.15, a)
+    for i in range(drains):
+        x = W / 2 - 650 + i * 150
+        person(d, x, base, 0.8, ramp(t, 0.1 + 0.05 * i, 0.3) * 0.8, GREY)
+        fill = 1 - lv
+        ix, iy = x, base - 175
+        d.rounded_rectangle([ix - 26, iy - 12, ix + 26, iy + 12], 4, outline=col(WHITE, a * 0.8), width=3)
+        d.rectangle([ix - 22, iy - 8, ix - 22 + 44 * fill, iy + 8], fill=col(WHITE, a * 0.8))
+        dashed(d, [(bx - 10, by + bh / 2), (ix + 30, iy)], col(GREY, a * 0.8), 2, 10, 8)
+    polyline(d, [(W / 2 - 750, base + 2), (W / 2 + 700, base + 2)], a, col(WHITE, 0.35), 2)
+
+
+def m_beam(d, t, dur, lbl="YOUR FUTURE", crowd=5, tags=(), **k):
+    """A wall of light between the crowd and you; you walk on toward what's next."""
+    a = ramp(t, 0.05, 0.3)
+    base = CY + 250
+    for i in range(crowd):
+        x = W / 2 - 700 + i * 120
+        person(d, x, base, 0.8, ramp(t, 0.1 + 0.05 * i, 0.3) * 0.75, GREY)
+    bx = W / 2 - 60
+    h = ramp(t, 0.3, 0.5)
+    for wdt, al in ((26, 0.12), (14, 0.3), (5, 1.0)):
+        d.rectangle([bx - wdt / 2, CY - 330 + 330 * (1 - h), bx + wdt / 2, base + 60 - 30 * (1 - h)], fill=col(WHITE, al * h))
+    hx = W / 2 + 120 + 90 * ease((t - 0.6) / max(1, dur - 0.6))
+    person(d, hx, base, 1.15, a)
+    ax0, ax1 = hx + 90, W / 2 + 720
+    polyline(d, [(ax0, base - 60), (ax1, base - 60)], ramp(t, 0.8, 0.5), WHITE, 4)
+    polyline(d, [(ax1 - 22, base - 78), (ax1, base - 60), (ax1 - 22, base - 42)], ramp(t, 1.2, 0.2), WHITE, 4)
+    if lbl:
+        pill(d, (ax0 + ax1) / 2 + 40, base - 110, lbl, ramp(t, 1.0, 0.3), 24)
+    spots = [(W / 2 - 480, CY - 140), (W / 2 - 230, CY - 60), (W / 2 - 560, CY - 10), (W / 2 - 300, CY + 60)]
+    for i, tg in enumerate(tags):
+        x, y = spots[i % len(spots)]
+        pill(d, x, y, tg, ramp(t, 0.6 + 0.2 * i, 0.3) * 0.7, 22, inverted=False)
+    polyline(d, [(W / 2 - 760, base + 2), (W / 2 + 760, base + 2)], a, col(WHITE, 0.35), 2)
+
+
 MOTIFS = {k[2:]: v for k, v in globals().items() if k.startswith("m_") and callable(v)}
 
 
@@ -1000,3 +1127,49 @@ def follow_sub(text):
         acc += " " + w
     out.append(acc.strip())
     return tuple(out)
+
+
+# ================================================================ hook (visual cold open)
+def headline(d, lines, t, start=0.12, y=180, size=72):
+    """Bold title in a glowing bordered box, slammed in word by word."""
+    lines = [ln.upper() for ln in lines]
+    f = font(size)
+    lh = size * 1.15
+    widths = [d.textlength(ln, font=f) for ln in lines]
+    bw, bh = max(widths) + 100, lh * len(lines) + 46
+    x0, y0, x1, y1 = W / 2 - bw / 2, y - bh / 2, W / 2 + bw / 2, y + bh / 2
+    pb = ramp(t, 0, 0.3)
+    d.rounded_rectangle([x0, y0, x1, y1], 16, fill=col(BLACK, 0.85 * pb))
+    polyline(d, [(W / 2, y0), (x1 - 16, y0), (x1, y0 + 16), (x1, y1 - 16), (x1 - 16, y1), (x0 + 16, y1), (x0, y1 - 16),
+                 (x0, y0 + 16), (x0 + 16, y0), (W / 2, y0)], pb, WHITE, 4)
+    words = [(li, w) for li, ln in enumerate(lines) for w in ln.split()]
+    n = len(words)
+    idx = 0
+    done = start + 0.85
+    for li, ln in enumerate(lines):
+        ws = ln.split()
+        space = d.textlength(" ", font=f)
+        x = W / 2 - widths[li] / 2
+        ty = y - (len(lines) - 1) * lh / 2 + li * lh
+        for w in ws:
+            ap = start + 0.85 * idx / max(1, n)
+            a = ramp(t, ap, 0.12)
+            d.text((x, ty + (1 - a) * 16), w, font=f, fill=col(WHITE, a), anchor="lm")
+            x += d.textlength(w, font=f) + space
+            idx += 1
+    flash = clamp(1 - (t - done) / 0.5) if t >= done else 0
+    if flash > 0:
+        d.rounded_rectangle([x0 - 8, y0 - 8, x1 + 8, y1 + 8], 22, outline=col(WHITE, flash * 0.8), width=3)
+
+
+def hook(title, motif=None, kw=None):
+    """Cold-open scene: a moving visual from frame 0 with the title slammed in as a headline."""
+    kw = dict(kw or {})
+    kw.pop("acc", None)
+    fn = MOTIFS[motif] if motif else None
+
+    def s_hook(d, t, dur):
+        if fn:
+            fn(d, t + 0.3, dur + 0.3, **kw)
+        headline(d, title, t)
+    return s_hook
