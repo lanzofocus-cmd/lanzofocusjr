@@ -1079,6 +1079,107 @@ def m_beam(d, t, dur, lbl="YOUR FUTURE", crowd=5, tags=(), **k):
     polyline(d, [(W / 2 - 760, base + 2), (W / 2 + 760, base + 2)], a, col(WHITE, 0.35), 2)
 
 
+# ================================================================ batch 6 motifs
+def m_water(d, t, dur, inside=False, lbl=None, ripples=False, **k):
+    """Waves across the lower frame; a figure on the edge, or already in the water."""
+    a = ramp(t, 0.05, 0.4)
+    wy = CY + 170
+    for i in range(4):
+        y = wy + i * 46
+        ph = t * (1.6 - i * 0.2) + i
+        pts = [(x, y + 12 * math.sin(x / 70 + ph)) for x in range(int(W / 2 - 800), int(W / 2 + 820), 20)]
+        polyline(d, pts, a, col(WHITE, 0.9 - i * 0.2), 4 - i // 2)
+    if inside:
+        cx = W / 2 + 40 * math.sin(t * 1.2)
+        bob = 6 * math.sin(t * 2.4)
+        d.rounded_rectangle([cx - 60, wy - 40 + bob, cx + 60, wy + 6], 30, fill=col(WHITE, a))
+        d.ellipse([cx - 34, wy - 124 + bob, cx + 34, wy - 56 + bob], fill=col(WHITE, a))
+        pts = [(x, wy + 12 * math.sin(x / 70 + t * 1.6)) for x in range(int(cx - 100), int(cx + 110), 10)]
+        polyline(d, pts, a, WHITE, 4)
+        if ripples:
+            for j in range(2):
+                r = 60 + 90 * ((t * 0.6 + j * 0.5) % 1)
+                d.ellipse([cx - r * 1.6, wy - r * 0.3, cx + r * 1.6, wy + r * 0.3], outline=col(WHITE, a * (1 - ((t * 0.6 + j * 0.5) % 1)) * 0.6), width=3)
+    else:
+        polyline(d, [(W / 2 - 800, wy - 40), (W / 2 - 300, wy - 40), (W / 2 - 300, wy + 160)], a, WHITE, 6)
+        person(d, W / 2 - 380, wy - 40, 1.3, a)
+    if lbl:
+        pill(d, W / 2 + 330, CY - 120, lbl, ramp(t, 0.6, 0.3), 26)
+
+
+def m_loop(d, t, dur, items=("TASK", "OVERWHELM", "AVOID", "RELIEF"), lbl=None, broken=False, **k):
+    """A habit loop: nodes on a ring with a dot circling them."""
+    cx, cy, rx, ry = W / 2, CY + 80, 430, 200
+    n = len(items)
+    angs = [-90 + i * 360 / n for i in range(n)]
+    pos = [(cx + rx * math.cos(math.radians(g)), cy + ry * math.sin(math.radians(g))) for g in angs]
+    a = ramp(t, 0.1, 0.4)
+    ring = [(cx + rx * math.cos(math.radians(g)), cy + ry * math.sin(math.radians(g))) for g in range(-90, 271, 4)]
+    if broken:
+        dashed(d, ring, col(GREY, a), 3, 16, 12)
+    else:
+        polyline(d, ring, ramp(t, 0.1, 0.9), col(WHITE, 0.55), 3)
+    for i, (x, y) in enumerate(pos):
+        pill(d, x, y, items[i], ramp(t, 0.3 + 0.25 * i, 0.3), 26, inverted=(i == 0))
+    if not broken:
+        g = -90 + ((t * 70) % 360)
+        dx, dy = cx + rx * math.cos(math.radians(g)), cy + ry * math.sin(math.radians(g))
+        d.ellipse([dx - 11, dy - 11, dx + 11, dy + 11], fill=col(WHITE, a))
+    if lbl:
+        ftext(d, cx, cy, lbl, 30, ramp(t, 0.9, 0.4), SOFT)
+
+
+def m_ticket(d, t, dur, lbl="ADMIT ONE", sub="NON-REFUNDABLE", tear=False, walk=False, **k):
+    """A cinema ticket; optionally torn, with the figure walking toward the exit."""
+    a = ramp(t, 0.1, 0.4)
+    cx, cy = W / 2 - (200 if walk else 0), CY + 60
+    w, h = 560, 240
+    sx = cx + 150
+    off = 40 * ramp(t, dur * 0.4, 0.6) if tear else 0
+    def body(x0, x1, dx):
+        pts = [(x0 + dx, cy - h / 2), (x1 + dx, cy - h / 2), (x1 + dx, cy + h / 2), (x0 + dx, cy + h / 2), (x0 + dx, cy - h / 2)]
+        polyline(d, pts, a, WHITE, 6)
+    body(cx - w / 2, sx, 0)
+    body(sx, cx + w / 2, off)
+    for x in (cx - w / 2, cx + w / 2 + off):
+        d.ellipse([x - 22, cy - 22, x + 22, cy + 22], fill=col(BLACK, 1), outline=col(WHITE, a), width=6)
+    dashed(d, [(sx + off * 0.5, cy - h / 2 + 10), (sx + off * 0.5, cy + h / 2 - 10)], col(GREY, a), 4, 12, 10)
+    ftext(d, cx - 70, cy - 30, lbl, 52, a)
+    label(d, cx - 70, cy + 45, sub, a, 24, GREY)
+    ftext(d, sx + off + 70, cy, "01", 44, a)
+    if walk:
+        base = CY + 300
+        door_icon(d, W / 2 + 560, base, ramp(t, 0.3), 0.8, "EXIT")
+        px = W / 2 + 260 + 160 * ease((t - 0.6) / max(1, dur - 0.6))
+        person(d, px, base, 1.1, ramp(t, 0.4))
+
+
+def m_house(d, t, dur, progress=0.6, lbl=None, watchers=True, **k):
+    """A house going up line by line, its builder beside it; far-off figures doubting."""
+    a = ramp(t, 0.1, 0.4)
+    base = CY + 270
+    cx = W / 2 + 120
+    p = lerp(progress * 0.6, progress, ease((t - 0.2) / max(0.6, dur * 0.7)))
+    w, hh, roof = 260, 230, 150
+    pts = [(cx - w, base), (cx - w, base - hh), (cx, base - hh - roof), (cx + w, base - hh), (cx + w, base), (cx - w, base)]
+    dashed(d, pts, col(GREY, a * 0.5), 3, 14, 12)
+    polyline(d, pts, p * a, WHITE, 7)
+    for i in range(1, 5):
+        yy = base - i * hh / 5
+        if p > 0.15 * i:
+            polyline(d, [(cx - w, yy), (cx + w, yy)], ramp(t, 0.3 + 0.15 * i, 0.4), col(WHITE, 0.35), 2)
+    person(d, cx + w + 110, base, 1.15, a)
+    polyline(d, [(cx + w + 160, base - 120), (cx + w + 200, base - 170)], a, WHITE, 6)
+    if watchers:
+        for i in range(3):
+            x = W / 2 - 720 + i * 110
+            person(d, x, base, 0.7, ramp(t, 0.5 + 0.1 * i, 0.3) * 0.6, GREY)
+            _icon(d, x, base - 150, "q", ramp(t, 0.8 + 0.1 * i, 0.3) * 0.7)
+    polyline(d, [(W / 2 - 780, base + 2), (W / 2 + 780, base + 2)], a, col(WHITE, 0.35), 2)
+    if lbl:
+        pill(d, cx, base - hh - roof - 60, lbl, ramp(t, 0.8, 0.3), 26)
+
+
 MOTIFS = {k[2:]: v for k, v in globals().items() if k.startswith("m_") and callable(v)}
 
 
